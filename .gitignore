@@ -1,0 +1,32 @@
+# === Angular ===
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.env
+
+# === .NET ===
+backend/bin/
+backend/obj/
+backend/*.user
+backend/*.suo
+backend/*.dbmdl
+backend/.vs/
+backend/Properties/launchSettings.json
+
+# === Logs ===
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === System Files ===
+.DS_Store
+Thumbs.db
+
+# === IDEs ===
+.vscode/
+.idea/
+
+# === Environment ===
+.env
+.env.local
