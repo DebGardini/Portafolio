@@ -8,67 +8,129 @@
       <mat-form-field appearance="outline">
         <mat-label>RUT del alumno</mat-label>
         <input matInput formControlName="rut" placeholder="Ej: 12.345.678-9">
+        <mat-error *ngIf="searchForm.get('rut')?.hasError('required')">
+          El RUT es obligatorio
+        </mat-error>
+        <mat-error *ngIf="searchForm.get('rut')?.hasError('pattern')">
+          Formato incorrecto. Debe ser: XX.XXX.XXX-X
+        </mat-error>
       </mat-form-field>
-      <button mat-raised-button color="primary" type="submit">
-        Buscar
+      <button mat-raised-button color="primary" type="submit" [disabled]="searchForm.invalid || isLoading">
+        <span *ngIf="!isLoading">Buscar</span>
+        <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
       </button>
     </form>
   </mat-card>
 
+  <!-- Indicador de estado de búsqueda -->
+  <div *ngIf="busquedaRealizada && !isLoading" class="resultado-busqueda">
+    <mat-card *ngIf="alumnoEncontrado" class="card resultado-card">
+      <mat-card-content>
+        <p class="alumno-info">Alumno encontrado: <strong>{{alumno?.nombre}}</strong> | RUT: {{alumno?.rut}}</p>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card *ngIf="!alumnoEncontrado" class="card resultado-card">
+      <mat-card-content>
+        <p class="no-encontrado">Alumno no encontrado. Complete el registro a continuación.</p>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
   <!-- Mostrar si el alumno no está registrado -->
-  <mat-card *ngIf="!alumnoExistente" class="card">
+  <mat-card *ngIf="busquedaRealizada && !alumnoExistente && !isLoading" class="card">
     <mat-card-title>Enrolar Alumno</mat-card-title>
     <form [formGroup]="enrolForm" (ngSubmit)="enrolarAlumno()" class="form-grid">
       <!-- Campos del formulario para enrolar alumno -->
       <mat-form-field appearance="outline">
         <mat-label>Nombre Completo</mat-label>
         <input matInput formControlName="nombre">
+        <mat-error *ngIf="enrolForm.get('nombre')?.hasError('required')">
+          El nombre es obligatorio
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>RUT</mat-label>
         <input matInput formControlName="rut">
+        <mat-error *ngIf="enrolForm.get('rut')?.hasError('required')">
+          El RUT es obligatorio
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Sede</mat-label>
         <input matInput formControlName="sede">
+        <mat-error *ngIf="enrolForm.get('sede')?.hasError('required')">
+          La sede es obligatoria
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Carrera</mat-label>
         <input matInput formControlName="carrera">
+        <mat-error *ngIf="enrolForm.get('carrera')?.hasError('required')">
+          La carrera es obligatoria
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Teléfono</mat-label>
         <input matInput formControlName="telefono">
+        <mat-error *ngIf="enrolForm.get('telefono')?.hasError('required')">
+          El teléfono es obligatorio
+        </mat-error>
+        <mat-error *ngIf="enrolForm.get('telefono')?.hasError('pattern')">
+          Debe contener 9 dígitos
+        </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Correo Electrónico</mat-label>
         <input matInput formControlName="email" type="email">
+        <mat-error *ngIf="enrolForm.get('email')?.hasError('required')">
+          El email es obligatorio
+        </mat-error>
+        <mat-error *ngIf="enrolForm.get('email')?.hasError('email')">
+          Formato de email inválido
+        </mat-error>
       </mat-form-field>
       <div class="form-actions">
-        <button mat-raised-button color="accent" type="submit">
-          Enrolar Alumno
+        <button mat-raised-button color="warn" type="button" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button mat-raised-button color="accent" type="submit" [disabled]="enrolForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Enrolar Alumno</span>
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
         </button>
       </div>
     </form>
   </mat-card>
 
   <!-- Mostrar opción para seleccionar un notebook y asociarlo al alumno -->
-  <mat-card *ngIf="alumnoExistente" class="card">
+  <mat-card *ngIf="alumnoExistente && !isLoading" class="card">
     <mat-card-title>Seleccionar Notebook</mat-card-title>
     <form [formGroup]="prestamoForm" (ngSubmit)="realizarPrestamo()" class="form-grid">
       <mat-form-field appearance="outline">
         <mat-label>Selecciona un Notebook</mat-label>
         <mat-select formControlName="notebookId">
           <mat-option *ngFor="let notebook of notebooksDisponibles" [value]="notebook.id">
-            {{ notebook.nombre }}
+            {{ notebook.nombre }} - {{ notebook.modelo }}
           </mat-option>
         </mat-select>
+        <mat-error *ngIf="prestamoForm.get('notebookId')?.hasError('required')">
+          Debe seleccionar un notebook
+        </mat-error>
       </mat-form-field>
       <div class="form-actions">
-        <button mat-raised-button color="primary" type="submit">
-          Realizar Préstamo
+        <button mat-raised-button color="warn" type="button" (click)="cancelar()">
+          Cancelar
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="prestamoForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Realizar Préstamo</span>
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
         </button>
       </div>
     </form>
   </mat-card>
+  
+  <!-- Spinner de carga general -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
 </div>

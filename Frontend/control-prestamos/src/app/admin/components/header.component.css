@@ -1,28 +1,32 @@
 /* Estilos generales del header */
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: white; 
-    padding: 10px 20px;
+    padding: 20px;
+    background-color: white;
     color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding-top: 0%;
+    padding-bottom: 0%;
   }
   
   .logo-container {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
   }
   
   .logo {
-    width: 100px;
+    width: 120px;
     height: auto;
-    margin-right: 10px;
     display: block;
+    
   }
   
   .title {
     font-size: 30px;
     font-weight: 600;
-    color: black;
+    color: #2c3e50;
+    
   }

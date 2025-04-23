@@ -1,37 +1,57 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrestamoService {
-
-  private baseUrl = 'https://tu-api-url.com/api';  // Cambia esta URL por la de tu API
+  // URL base para la API - Cambiar según corresponda
+  private apiUrl = 'http://localhost:3000/api'; // URL por defecto, ajustar según necesidad
 
   constructor(private http: HttpClient) { }
 
-  // Obtener los préstamos activos
-  getPrestamosActivos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/prestamos/activos`);
+  // Buscar alumno por RUT
+  buscarAlumnoPorRut(rut: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/alumnos/buscar/${rut}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error al buscar alumno:', error);
+          return of(null);
+        })
+      );
   }
 
-  // Realizar un nuevo préstamo
+  // Registrar un nuevo alumno
+  registrarAlumno(alumnoData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/alumnos/registrar`, alumnoData);
+  }
+
+  // Obtener notebooks disponibles
+  getNotebooksDisponibles(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/notebooks/disponibles`)
+      .pipe(
+        catchError(error => {
+          console.error('Error al obtener notebooks disponibles:', error);
+          // Datos de ejemplo en caso de error
+          return of([
+            { id: 1, nombre: 'Notebook Dell', modelo: 'XPS 13' },
+            { id: 2, nombre: 'Notebook HP', modelo: 'Spectre x360' },
+            { id: 3, nombre: 'Notebook Lenovo', modelo: 'ThinkPad X1' }
+          ]);
+        })
+      );
+  }
+
+  // Realizar préstamo
   realizarPrestamo(rutAlumno: string, notebookId: number): Observable<any> {
-    const prestamo = {
-      rut: rutAlumno,
-      notebookId: notebookId
+    const prestamoData = {
+      rutAlumno,
+      notebookId,
+      fechaPrestamo: new Date().toISOString()
     };
-    return this.http.post<any>(`${this.baseUrl}/prestamos`, prestamo);
-  }
-
-  // Devolver un préstamo
-  devolverPrestamo(prestamoId: number): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}/prestamos/devolver`, { prestamoId });
-  }
-
-  // Obtener historial de préstamos
-  getHistorialPrestamos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/prestamos/historial`);
+    
+    return this.http.post<any>(`${this.apiUrl}/prestamos/crear`, prestamoData);
   }
 }
