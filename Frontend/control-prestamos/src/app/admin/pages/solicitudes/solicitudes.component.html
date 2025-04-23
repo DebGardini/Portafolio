@@ -1,0 +1,74 @@
+<div class="solicitudes-container mat-typography">
+  <h1>Gestión de Solicitudes</h1>
+
+  <!-- Buscar alumno por RUT -->
+  <mat-card class="card">
+    <mat-card-title>Buscar Alumno</mat-card-title>
+    <form [formGroup]="searchForm" (ngSubmit)="buscarAlumno()" class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>RUT del alumno</mat-label>
+        <input matInput formControlName="rut" placeholder="Ej: 12.345.678-9">
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="submit">
+        Buscar
+      </button>
+    </form>
+  </mat-card>
+
+  <!-- Mostrar si el alumno no está registrado -->
+  <mat-card *ngIf="!alumnoExistente" class="card">
+    <mat-card-title>Enrolar Alumno</mat-card-title>
+    <form [formGroup]="enrolForm" (ngSubmit)="enrolarAlumno()" class="form-grid">
+      <!-- Campos del formulario para enrolar alumno -->
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre Completo</mat-label>
+        <input matInput formControlName="nombre">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>RUT</mat-label>
+        <input matInput formControlName="rut">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Sede</mat-label>
+        <input matInput formControlName="sede">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Carrera</mat-label>
+        <input matInput formControlName="carrera">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Teléfono</mat-label>
+        <input matInput formControlName="telefono">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Correo Electrónico</mat-label>
+        <input matInput formControlName="email" type="email">
+      </mat-form-field>
+      <div class="form-actions">
+        <button mat-raised-button color="accent" type="submit">
+          Enrolar Alumno
+        </button>
+      </div>
+    </form>
+  </mat-card>
+
+  <!-- Mostrar opción para seleccionar un notebook y asociarlo al alumno -->
+  <mat-card *ngIf="alumnoExistente" class="card">
+    <mat-card-title>Seleccionar Notebook</mat-card-title>
+    <form [formGroup]="prestamoForm" (ngSubmit)="realizarPrestamo()" class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Selecciona un Notebook</mat-label>
+        <mat-select formControlName="notebookId">
+          <mat-option *ngFor="let notebook of notebooksDisponibles" [value]="notebook.id">
+            {{ notebook.nombre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div class="form-actions">
+        <button mat-raised-button color="primary" type="submit">
+          Realizar Préstamo
+        </button>
+      </div>
+    </form>
+  </mat-card>
+</div>

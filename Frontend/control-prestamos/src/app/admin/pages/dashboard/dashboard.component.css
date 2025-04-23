@@ -1,0 +1,129 @@
+/* Estilos generales */
+body {
+  font-family: 'Roboto', 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.resumen-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 24px;
+}
+
+/* Estilos para el dashboard grid (3 cartas arriba) */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Tres columnas de igual tamaño */
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.mat-card {
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 20px;
+  background-color: white;
+}
+
+.mat-card-title {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #555;
+}
+
+.mat-card-content {
+  font-size: 24px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Estilos para la tabla */
+.full-width {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: none;
+}
+
+table {
+  background-color: white;
+}
+
+th {
+  background-color: #f9f9f9;
+  color: #555;
+  font-weight: 500;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Estilos para los estados */
+.devuelto {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  display: inline-block;
+  text-align: center;
+}
+
+.vencido {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 14px;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Estilos específicos para alinear con la imagen */
+.mat-elevation-z2 {
+  box-shadow: none;
+}
+
+/* Ajuste para el estado */
+td:last-child {
+  text-align: center;
+}
+
+/* Estilo para los nombres de usuario */
+td strong {
+  color: #000;
+}
+
+/* Estilo para las fechas */
+td:nth-child(3), td:nth-child(4) {
+  color: #555;
+}
+
+/* Card de historial (ocupa todo el ancho) */
+.resumen-card {
+  grid-column: span 3; /* Esto hace que la card ocupe todo el ancho */
+  margin-top: 30px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+}

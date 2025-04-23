@@ -1,0 +1,48 @@
+<div class="mat-typography resumen-container">
+  <h1>Resumen</h1>
+
+  <div class="dashboard-grid">
+    <!-- Tres primeras cards (arriba) -->
+    <div class="mat-card">
+      <div class="mat-card-title">Portátiles Disponibles</div>
+      <div class="mat-card-content">{{ inventarioNotebooks }}</div>
+    </div>
+
+    <div class="mat-card">
+      <div class="mat-card-title">Préstamos Activos</div>
+      <div class="mat-card-content">{{ prestamosActivos }}</div>
+    </div>
+
+    <div class="mat-card">
+      <div class="mat-card-title">Préstamos Vencidos</div>
+      <div class="mat-card-content">{{ prestamosVencidos }}</div>
+    </div>
+  </div>
+
+  <!-- Card de historial (abajo, ocupa todo el ancho) -->
+  <div class="mat-card resumen-card">
+    <div class="mat-card-title">Historial de préstamos de notebooks</div>
+    <div class="mat-elevation-z2">
+      <table class="full-width">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Portátil</th>
+            <th>Fecha de Préstamo</th>
+            <th>Fecha de Devolución</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let solicitud of historialSolicitudes">
+            <td><strong>{{ solicitud.usuario }}</strong></td>
+            <td>{{ solicitud.notebook }}</td>
+            <td>{{ solicitud.fechaPrestamo }}</td>
+            <td>{{ solicitud.fechaDevolucion }}</td>
+            <td><span [ngClass]="solicitud.estado">{{ solicitud.estado }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
