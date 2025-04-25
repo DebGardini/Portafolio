@@ -1,1 +1,57 @@
-<p>status works!</p>
+<app-header></app-header>
+
+<div class="mat-typography status-container">
+  <h1>Estado del Alumno</h1>
+
+  <div *ngIf="studentData" class="dashboard-grid">
+    <!-- Información del alumno -->
+    <div class="mat-card">
+      <div class="mat-card-title">Información del Alumno</div>
+      <div class="mat-card-content">
+        <p><strong>Nombre:</strong> {{ studentData.nombre }}</p>
+        <p><strong>Sede:</strong> {{ studentData.sede }}</p>
+        <p><strong>Carrera:</strong> {{ studentData.carrera }}</p>
+      </div>
+    </div>
+
+    <!-- Estado del préstamo -->
+    <div class="mat-card">
+      <div class="mat-card-title">Estado del Préstamo</div>
+      <div class="mat-card-content">
+        <p><strong>Estado:</strong> {{ studentData.estadoPrestamo }}</p>
+        <p *ngIf="studentData.fechaPrestamo"><strong>Fecha y Hora:</strong> {{ studentData.fechaPrestamo }}</p>
+      </div>
+    </div>
+
+    <!-- Bloqueos -->
+    <div class="mat-card">
+      <div class="mat-card-title">Bloqueos</div>
+      <div class="mat-card-content">
+        <div *ngIf="studentData.bloqueos?.length > 0">
+          <strong>Bloqueos Activos:</strong>
+          <ul>
+            <li *ngFor="let bloqueo of studentData.bloqueos">{{ bloqueo }}</li>
+          </ul>
+        </div>
+        <p *ngIf="!studentData.bloqueos || studentData.bloqueos.length === 0">No posee bloqueos.</p>
+      </div>
+    </div>
+
+    <!-- Tiempo Restante para Devolución -->
+    <div class="mat-card">
+      <div class="mat-card-title">Tiempo Restante para Devolución</div>
+      <div class="mat-card-content">
+        <p *ngIf="studentData.tiempoRestante">
+          <strong>Tiempo Restante:</strong> {{ countdown }}
+        </p>
+        <p *ngIf="!studentData.tiempoRestante">
+          No hay préstamos activos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!studentData">
+    <p>No se encontró información del alumno.</p>
+  </div>
+</div>

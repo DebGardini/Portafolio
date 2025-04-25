@@ -163,25 +163,27 @@ export class SolicitudesComponent implements OnInit {
     this.isLoading = true;
     const rutAlumno = this.alumno.rut;
     const notebookId = this.prestamoForm.value.notebookId;
+    const fechaPrestamo = new Date();
 
-    this.prestamoService.realizarPrestamo(rutAlumno, notebookId)
-      .pipe(
-        tap(response => {
-          console.log('Préstamo realizado con éxito', response);
-          this.snackBar.open('Préstamo realizado con éxito', 'Cerrar', { duration: 3000 });
-          // Resetear los formularios
-          this.resetForms();
-        }),
-        catchError(error => {
-          console.error('Error al realizar el préstamo', error);
-          this.snackBar.open('Error al realizar el préstamo', 'Cerrar', { duration: 3000 });
-          return of(null);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe();
+    this.prestamoService.realizarPrestamo(rutAlumno, notebookId).subscribe(
+      (response) => {
+        console.log('Préstamo realizado con éxito', response);
+        this.snackBar.open('Préstamo realizado con éxito', 'Cerrar', { duration: 3000 });
+
+        // Guardar la hora de inicio del préstamo
+        this.alumno.tiempoRestante = new Date(fechaPrestamo.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+        // Resetear los formularios
+        this.resetForms();
+      },
+      (error) => {
+        console.error('Error al realizar el préstamo', error);
+        this.snackBar.open('Error al realizar el préstamo', 'Cerrar', { duration: 3000 });
+      },
+      () => {
+        this.isLoading = false;
+      }
+    );
   }
 
   // Método para cargar notebooks disponibles

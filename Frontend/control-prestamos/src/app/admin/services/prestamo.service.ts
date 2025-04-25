@@ -14,13 +14,21 @@ export class PrestamoService {
 
   // Buscar alumno por RUT
   buscarAlumnoPorRut(rut: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/alumnos/buscar/${rut}`)
-      .pipe(
-        catchError(error => {
-          console.error('Error al buscar alumno:', error);
-          return of(null);
-        })
-      );
+    // Simulación de datos de un alumno enrolado con tiempo restante calculado
+    const now = new Date();
+    const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString();
+
+    const mockData: Record<string, { nombre: string; sede: string; carrera: string; estadoPrestamo: string; tiempoRestante: string }> = {
+      '12.345.678-9': {
+        nombre: 'Juan Pérez',
+        sede: 'Santiago Centro',
+        carrera: 'Ingeniería en Informática',
+        estadoPrestamo: 'Activo',
+        tiempoRestante: twoHoursLater,
+      },
+    };
+
+    return of(mockData[rut] || null);
   }
 
   // Registrar un nuevo alumno

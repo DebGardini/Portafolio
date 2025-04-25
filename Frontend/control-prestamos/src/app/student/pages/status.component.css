@@ -1,0 +1,50 @@
+/* General styles for the student status page */
+.status-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  color: #2c3e50;
+  margin-bottom: 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.mat-card {
+  border-radius: 8px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  background-color: white;
+}
+
+.mat-card-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #555;
+}
+
+.mat-card-content {
+  font-size: 16px;
+  color: #333;
+}
+
+ul {
+  padding-left: 20px;
+  list-style-type: disc;
+}
+
+li {
+  margin-bottom: 8px;
+}
+
+p {
+  margin: 8px 0;
+}
