@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { PrestamoService } from '../admin/services/prestamo.service';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from "../admin/components/header.component";
+import { AuthService } from '../admin/services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -21,7 +22,8 @@ export class HomeComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private prestamoService: PrestamoService
+    private prestamoService: PrestamoService,
+    private authService: AuthService
   ) {
     this.adminLoginForm = this.fb.group({
       username: ['', Validators.required],
@@ -44,8 +46,7 @@ export class HomeComponent {
     }
 
     const { username, password } = this.adminLoginForm.value;
-    // Simulación de autenticación
-    if (username === 'admin' && password === 'admin123') {
+    if (this.authService.login(username, password)) {
       this.router.navigate(['/admin']);
     } else {
       alert('Credenciales incorrectas.');

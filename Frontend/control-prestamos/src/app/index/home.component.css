@@ -3,9 +3,9 @@
   background-color: #ffffff;
   max-width: 500px;
   margin: 0 auto;
+  margin-top: 20px;
   padding: 20px;
   font-family: 'Roboto', sans-serif;
-  margin-top: 100px;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
@@ -16,7 +16,16 @@ h1 {
   text-align: center;
 }
 
-.admin-login, .student-search {
+.student-search {
+  margin-bottom: 40px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-login {
   margin-bottom: 30px;
   padding: 20px;
   border: 1px solid #ddd;
@@ -45,7 +54,7 @@ input {
   margin-bottom: 15px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 button {
@@ -68,7 +77,7 @@ a {
   font-weight: bold;
   display: block;
   text-align: right;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 button:hover {
