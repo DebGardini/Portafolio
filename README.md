@@ -1,6 +1,6 @@
 # 📚 Sistema de Préstamos - Portafolio
 
-Proyecto fullstack desarrollado con Angular (frontend), ASP.NET Core (backend) y MySQL (base de datos). Desplegado en Microsoft Azure.
+Proyecto fullstack desarrollado con Angular (frontend), ASP.NET Core (backend) y SQL Server (base de datos). Desplegado en Microsoft Azure.
 
 ---
 
