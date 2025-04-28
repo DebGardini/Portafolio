@@ -8,8 +8,8 @@ Proyecto fullstack desarrollado con Angular (frontend), ASP.NET Core (backend) y
 
 - **Frontend:** Angular
 - **Backend:** ASP.NET Core Web API
-- **Base de datos:** MySQL
-- **Despliegue:** Azure App Service + Azure Database for MySQL
+- **Base de datos:** SQL Server
+- **Despliegue:** Azure
 
 ---
 
