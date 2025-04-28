@@ -8,7 +8,7 @@ import { catchError, map } from 'rxjs/operators';
 })
 export class PrestamoService {
   // URL base para la API - Cambiar según corresponda
-  private apiUrl = 'http://localhost:3000/api'; // URL por defecto, ajustar según necesidad
+  private apiUrl = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) { }
 

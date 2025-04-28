@@ -29,18 +29,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   styleUrl: './solicitudes.component.css'
 })
 export class SolicitudesComponent implements OnInit {
-  // Formularios
+  
   searchForm!: FormGroup;
   enrolForm!: FormGroup;
   prestamoForm!: FormGroup;
 
-  // Variables para gestionar los datos
   alumnoExistente = false;
   alumnoEncontrado = false;
-  notebooksDisponibles: any[] = [];  // Lista de notebooks disponibles
-  alumno: any;  // Información del alumno
+  notebooksDisponibles: any[] = [];
+  alumno: any;
   
-  // Estados de UI
   isLoading = false;
   busquedaRealizada = false;
 
@@ -53,7 +51,6 @@ export class SolicitudesComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Cargar datos iniciales si es necesario
     this.cargarNotebooksDisponibles();
   }
 
@@ -212,7 +209,6 @@ export class SolicitudesComponent implements OnInit {
     this.busquedaRealizada = false;
   }
 
-  // Cancelar operación
   cancelar() {
     this.resetForms();
   }
