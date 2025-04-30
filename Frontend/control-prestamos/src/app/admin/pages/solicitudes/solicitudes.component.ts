@@ -1,83 +1,76 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { PrestamoService } from '../../services/prestamo.service';
-import { Observable, catchError, finalize, of, tap } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-solicitudes',
+  standalone: true,
   imports: [
-    CommonModule, 
-    ReactiveFormsModule, 
-    MatCardModule, 
-    MatButtonModule, 
+    CommonModule,
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
     MatInputModule,
-    MatSnackBarModule,
+    MatButtonModule,
     MatSelectModule,
     MatOptionModule,
+    MatSnackBarModule,
     MatProgressSpinnerModule
   ],
-  standalone: true,
   templateUrl: './solicitudes.component.html',
-  styleUrl: './solicitudes.component.css'
+  styleUrls: ['./solicitudes.component.css']
 })
 export class SolicitudesComponent implements OnInit {
-  
-  searchForm!: FormGroup;
-  enrolForm!: FormGroup;
-  prestamoForm!: FormGroup;
+  searchForm: FormGroup;
+  enrolForm: FormGroup;
+  prestamoForm: FormGroup;
 
-  alumnoExistente = false;
-  alumnoEncontrado = false;
+  alumno: any = null;
+  alumnoEncontrado: boolean = false;
+  alumnoExistente: boolean = false;
   notebooksDisponibles: any[] = [];
-  alumno: any;
-  
   isLoading = false;
   busquedaRealizada = false;
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private prestamoService: PrestamoService,
     private snackBar: MatSnackBar
   ) {
-    this.initForms();
-  }
-
-  ngOnInit() {
-    this.cargarNotebooksDisponibles();
-  }
-
-  private initForms() {
-    // Formulario para buscar alumno
     this.searchForm = this.fb.group({
       rut: ['', [Validators.required, Validators.pattern(/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9kK]$/)]]
     });
 
-    // Formulario para enrolar alumno
     this.enrolForm = this.fb.group({
       nombre: ['', Validators.required],
-      rut: [{value: '', disabled: true}, Validators.required],
+      rut: [{ value: '', disabled: true }, Validators.required],
       sede: ['', Validators.required],
       carrera: ['', Validators.required],
       telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email]]
     });
 
-    // Formulario para realizar el préstamo
     this.prestamoForm = this.fb.group({
       notebookId: ['', Validators.required]
     });
   }
 
-  // Método para buscar al alumno por RUT
-  buscarAlumno() {
+  ngOnInit(): void {
+    this.cargarNotebooksDisponibles();
+  }
+
+  buscarAlumno(): void {
     if (this.searchForm.invalid) {
       this.snackBar.open('Por favor ingrese un RUT válido', 'Cerrar', { duration: 3000 });
       return;
@@ -85,43 +78,34 @@ export class SolicitudesComponent implements OnInit {
 
     const rut = this.searchForm.value.rut;
     this.isLoading = true;
-    this.busquedaRealizada = true;
-
-    this.prestamoService.buscarAlumnoPorRut(rut)
-      .pipe(
-        tap(alumno => {
-          if (alumno) {
-            // Alumno encontrado
-            this.alumnoExistente = true;
-            this.alumnoEncontrado = true;
-            this.alumno = alumno;
-            this.snackBar.open(`Alumno ${alumno.nombre} encontrado`, 'Cerrar', { duration: 3000 });
-          } else {
-            // Alumno no encontrado
-            this.alumnoExistente = false;
-            this.alumnoEncontrado = false;
-            // Preparar formulario de enrolamiento con el RUT
-            this.enrolForm.patchValue({ rut: rut });
-            this.enrolForm.get('rut')?.enable();
-            this.snackBar.open('Alumno no encontrado. Por favor complete el registro.', 'Cerrar', { duration: 3000 });
-          }
-        }),
-        catchError(error => {
-          console.error('Error al buscar alumno:', error);
-          this.snackBar.open('Error al buscar el alumno', 'Cerrar', { duration: 3000 });
-          this.alumnoExistente = false;
+    this.prestamoService.buscarAlumnoPorRut(rut).subscribe(
+      (alumno) => {
+        this.busquedaRealizada = true;
+        if (alumno) {
+          this.alumno = alumno;
+          this.alumnoEncontrado = true;
+          this.alumnoExistente = true;
+          this.snackBar.open(`Alumno ${alumno.nombre} encontrado`, 'Cerrar', { duration: 3000 });
+        } else {
+          this.alumno = null;
           this.alumnoEncontrado = false;
-          return of(null);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe();
+          this.alumnoExistente = false;
+          this.enrolForm.patchValue({ rut });
+          this.enrolForm.get('rut')?.enable();
+          this.snackBar.open('Alumno no encontrado. Complete el registro.', 'Cerrar', { duration: 3000 });
+        }
+      },
+      (error) => {
+        console.error('Error al buscar alumno:', error);
+        this.snackBar.open('Error al buscar el alumno', 'Cerrar', { duration: 3000 });
+      },
+      () => {
+        this.isLoading = false;
+      }
+    );
   }
 
-  // Método para enrolar un alumno
-  enrolarAlumno() {
+  enrolarAlumno(): void {
     if (this.enrolForm.invalid) {
       this.snackBar.open('Por favor complete todos los campos correctamente', 'Cerrar', { duration: 3000 });
       return;
@@ -129,52 +113,49 @@ export class SolicitudesComponent implements OnInit {
 
     this.isLoading = true;
     const alumnoData = this.enrolForm.value;
-
-    this.prestamoService.registrarAlumno(alumnoData)
-      .pipe(
-        tap(nuevoAlumno => {
-          this.alumno = nuevoAlumno;
-          this.alumnoExistente = true;
-          this.alumnoEncontrado = true;
-          this.snackBar.open('Alumno registrado con éxito', 'Cerrar', { duration: 3000 });
-        }),
-        catchError(error => {
-          console.error('Error al registrar alumno:', error);
-          this.snackBar.open('Error al registrar el alumno', 'Cerrar', { duration: 3000 });
-          return of(null);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe();
+    this.prestamoService.registrarAlumno(alumnoData).subscribe(
+      (nuevoAlumno) => {
+        this.alumno = nuevoAlumno;
+        this.alumnoEncontrado = true;
+        this.alumnoExistente = true;
+        this.snackBar.open('Alumno registrado con éxito', 'Cerrar', { duration: 3000 });
+      },
+      (error) => {
+        console.error('Error al registrar alumno:', error);
+        this.snackBar.open('Error al registrar el alumno', 'Cerrar', { duration: 3000 });
+      },
+      () => {
+        this.isLoading = false;
+      }
+    );
   }
 
-  // Método para realizar el préstamo de un notebook
-  realizarPrestamo() {
+  realizarPrestamo(): void {
     if (this.prestamoForm.invalid || !this.alumno) {
       this.snackBar.open('Por favor seleccione un notebook', 'Cerrar', { duration: 3000 });
       return;
     }
 
     this.isLoading = true;
-    const rutAlumno = this.alumno.rut;
-    const notebookId = this.prestamoForm.value.notebookId;
-    const fechaPrestamo = new Date();
+    const solicitudData = {
+      id: 0,
+      notebookId: this.prestamoForm.value.notebookId,
+      notebook: null,
+      studentRut: this.alumno.rut,
+      student: null,
+      beginDate: new Date().toISOString(),
+      endDate: null,
+      loanState: 0,
+      sanction: null
+    };
 
-    this.prestamoService.realizarPrestamo(rutAlumno, notebookId).subscribe(
+    this.prestamoService.registrarPrestamo(solicitudData).subscribe(
       (response) => {
-        console.log('Préstamo realizado con éxito', response);
         this.snackBar.open('Préstamo realizado con éxito', 'Cerrar', { duration: 3000 });
-
-        // Guardar la hora de inicio del préstamo
-        this.alumno.tiempoRestante = new Date(fechaPrestamo.getTime() + 2 * 60 * 60 * 1000).toISOString();
-
-        // Resetear los formularios
         this.resetForms();
       },
       (error) => {
-        console.error('Error al realizar el préstamo', error);
+        console.error('Error al realizar el préstamo:', error);
         this.snackBar.open('Error al realizar el préstamo', 'Cerrar', { duration: 3000 });
       },
       () => {
@@ -183,33 +164,29 @@ export class SolicitudesComponent implements OnInit {
     );
   }
 
-  // Método para cargar notebooks disponibles
-  cargarNotebooksDisponibles() {
-    this.prestamoService.getNotebooksDisponibles()
-      .pipe(
-        tap(notebooks => {
-          this.notebooksDisponibles = notebooks;
-        }),
-        catchError(error => {
-          console.error('Error al cargar notebooks disponibles:', error);
-          this.snackBar.open('Error al cargar notebooks disponibles', 'Cerrar', { duration: 3000 });
-          return of([]);
-        })
-      )
-      .subscribe();
+  cargarNotebooksDisponibles(): void {
+    this.prestamoService.getNotebooksDisponibles().subscribe(
+      (notebooks) => {
+        this.notebooksDisponibles = notebooks;
+      },
+      (error) => {
+        console.error('Error al cargar notebooks disponibles:', error);
+        this.snackBar.open('Error al cargar notebooks disponibles', 'Cerrar', { duration: 3000 });
+      }
+    );
   }
 
-  // Método para resetear los formularios
-  resetForms() {
+  resetForms(): void {
     this.searchForm.reset();
     this.enrolForm.reset();
     this.prestamoForm.reset();
-    this.alumnoExistente = false;
+    this.alumno = null;
     this.alumnoEncontrado = false;
+    this.alumnoExistente = false;
     this.busquedaRealizada = false;
   }
 
-  cancelar() {
+  cancelar(): void {
     this.resetForms();
   }
 }

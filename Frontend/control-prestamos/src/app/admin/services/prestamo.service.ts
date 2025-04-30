@@ -52,14 +52,8 @@ export class PrestamoService {
       );
   }
 
-  // Realizar préstamo
-  realizarPrestamo(rutAlumno: string, notebookId: number): Observable<any> {
-    const prestamoData = {
-      rutAlumno,
-      notebookId,
-      fechaPrestamo: new Date().toISOString()
-    };
-    
-    return this.http.post<any>(`${this.apiUrl}/prestamos/crear`, prestamoData);
+  // Registrar un préstamo con el formato completo
+  registrarPrestamo(prestamoData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/prestamos/registrar`, prestamoData);
   }
 }
