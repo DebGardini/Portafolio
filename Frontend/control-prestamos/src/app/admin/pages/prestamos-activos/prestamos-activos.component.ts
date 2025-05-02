@@ -9,7 +9,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { PrestamosActivosService } from './../../services/prestamos-activos.service';
 
-
 @Component({
   selector: 'app-prestamos-activos',
   standalone: true,
