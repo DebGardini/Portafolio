@@ -138,7 +138,7 @@ export class SolicitudesComponent implements OnInit {
     const alumnoData = {
       name: this.enrolForm.value.name,
       lastname: this.enrolForm.value.lastname,
-      rut: this.enrolForm.value.rut, // Enviar como string
+      rut: this.enrolForm.value.rut,
       dv: this.enrolForm.value.dv,
       campus: this.enrolForm.value.campus,
       career: this.enrolForm.value.career,

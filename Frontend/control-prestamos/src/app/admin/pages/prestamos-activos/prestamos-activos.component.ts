@@ -43,9 +43,11 @@ export class PrestamosActivosComponent implements OnInit {
   constructor(private dialog: MatDialog, private prestamosService: PrestamosActivosService) {}
 
   ngOnInit() {
-    this.prestamosService.obtenerPrestamos().subscribe(prestamos => {
-      this.data = prestamos;
-      this.filteredData = [...this.data];
+    this.prestamosService.obtenerPrestamos().subscribe(prestamosActivos => {
+      this.prestamosService.obtenerPrestamosPendientes().subscribe(prestamosPendientes => {
+        this.data = [...prestamosActivos, ...prestamosPendientes];
+        this.filteredData = [...this.data];
+      });
     });
   }
 

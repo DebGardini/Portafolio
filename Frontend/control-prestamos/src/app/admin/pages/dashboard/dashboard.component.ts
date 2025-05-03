@@ -5,8 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
-
-
+import { catchError, finalize, of } from 'rxjs';
 
 
 @Component({
@@ -22,6 +21,8 @@ export class DashboardComponent implements OnInit {
   prestamosVencidos: number = 0;
   historialSolicitudes: any[] = [];
   notebooksDisponibles: number = 0;
+  isLoading: boolean = false;
+  error: string | null = null;
 
   constructor(private resumenService: ResumenService) {}
 
@@ -31,20 +32,49 @@ export class DashboardComponent implements OnInit {
 
   // Método para cargar todos los datos del dashboard
   loadResumenData(): void {
-    this.resumenService.getPrestamosActivos().subscribe((data) => {
-      this.prestamosActivos = data;
-    });
+    this.isLoading = true;
 
-    this.resumenService.getPrestamosVencidos().subscribe((data) => {
-      this.prestamosVencidos = data;
-    });
+    this.resumenService.getPrestamosActivos()
+      .pipe(
+        catchError(error => {
+          console.error('Error al cargar préstamos activos:', error);
+          this.error = 'Error al cargar préstamos activos';
+          return of(0);
+        })
+      )
+      .subscribe(data => {
+        this.prestamosActivos = data;
+      });
+
+    this.resumenService.getPrestamosVencidos()
+      .pipe(
+        catchError(error => {
+          console.error('Error al cargar préstamos vencidos:', error);
+          this.error = 'Error al cargar préstamos vencidos';
+          return of(0);
+        })
+      )
+      .subscribe(data => {
+        this.prestamosVencidos = data;
+      });
 
     this.resumenService.getHistorialSolicitudes().subscribe((data) => {
       this.historialSolicitudes = data;
     });
 
-    this.resumenService.getNotebooksDisponibles().subscribe((data) => {
-      this.notebooksDisponibles = data;
-    });
+    this.resumenService.getNotebooksDisponibles()
+      .pipe(
+        catchError(error => {
+          console.error('Error al cargar la cantidad de notebooks disponibles:', error);
+          this.error = 'Error al cargar la cantidad de notebooks disponibles';
+          return of(0);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe(data => {
+        this.notebooksDisponibles = data;
+      });
   }
 }

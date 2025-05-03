@@ -18,7 +18,13 @@ export class PrestamoService {
     const rutNumerico = rut.split('-')[0];
 
     // Realizar la solicitud al backend con el RUT numérico
-    return this.http.get<any>(`${this.apiUrl}/students/${rutNumerico}`);
+    return this.http.get<any>(`${this.apiUrl}/students/by-rut/${rutNumerico}`)
+      .pipe(
+        catchError(error => {
+          console.error('Error al buscar alumno por RUT:', error);
+          return of(null); // Devolver null en caso de error
+        })
+      );
   }
 
   // Registrar un nuevo alumno
