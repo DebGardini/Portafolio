@@ -1,0 +1,48 @@
+.contenedor {
+  padding: 24px;
+}
+
+.buscador {
+  margin-bottom: 16px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.mat-elevation-z8 {
+  border-radius: 8px;
+}
+
+.estado {
+  font-weight: bold;
+}
+
+.text-green-600 {
+  color: #2e7d32; /* verde */
+}
+
+.text-red-600 {
+  color: #c62828; /* rojo */
+}
+
+.mat-column-accion {
+  text-align: center;
+}
+
+button.mat-icon-button {
+  color: #1976d2; /* azul */
+}
+
+.mat-dialog-title {
+  font-weight: bold;
+  font-size: 20px;
+  color: #424242;
+}
+
+.historial-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.historial-item:last-child {
+  border-bottom: none;
+}
