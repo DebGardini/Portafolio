@@ -5,6 +5,8 @@ import { PrestamoService } from '../admin/services/prestamo.service';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from "../admin/components/header.component";
 import { AuthService } from '../admin/services/auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-home',
@@ -23,7 +25,8 @@ export class HomeComponent {
     private fb: FormBuilder,
     private router: Router,
     private prestamoService: PrestamoService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient // Add HttpClient for API calls
   ) {
     this.adminLoginForm = this.fb.group({
       username: ['', Validators.required],
@@ -45,13 +48,18 @@ export class HomeComponent {
       return;
     }
 
-    const { username, password } = this.adminLoginForm.value;
-    if (this.authService.login(username, password)) {
-      this.router.navigate(['/admin']);
-    } else {
-      alert('Credenciales incorrectas.');
-    }
-  }
+  /*  const { username, password } = this.adminLoginForm.value;
+    this.http.post(`${environment.apiUrl}/account/login`, { username, password }).subscribe(
+      (response: any) => {
+        this.authService.setToken(response.token);
+        this.router.navigate(['/admin']);
+      },
+      (error) => {
+        console.error('Error al iniciar sesión:', error);
+        alert('Credenciales incorrectas.');
+      );
+        }*/
+      }
 
   searchStudent() {
     if (this.studentSearchForm.invalid) {

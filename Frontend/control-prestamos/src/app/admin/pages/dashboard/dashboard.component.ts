@@ -21,7 +21,7 @@ export class DashboardComponent implements OnInit {
   prestamosActivos: number = 0;
   prestamosVencidos: number = 0;
   historialSolicitudes: any[] = [];
-  inventarioNotebooks: number = 0;
+  notebooksDisponibles: number = 0;
 
   constructor(private resumenService: ResumenService) {}
 
@@ -43,8 +43,8 @@ export class DashboardComponent implements OnInit {
       this.historialSolicitudes = data;
     });
 
-    this.resumenService.getInventarioNotebooks().subscribe((data) => {
-      this.inventarioNotebooks = data;
+    this.resumenService.getNotebooksDisponibles().subscribe((data) => {
+      this.notebooksDisponibles = data;
     });
   }
 }

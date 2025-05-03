@@ -13,6 +13,16 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ReactiveFormsModule } from '@angular/forms';
 
+interface Notebook {
+  $id?: string;
+  id: number;
+  brand: string;
+  model: string;
+  serialNumber: string;
+  available: boolean;
+  loans: any[] | null;
+}
+
 @Component({
   selector: 'app-solicitudes',
   standalone: true,
@@ -39,7 +49,7 @@ export class SolicitudesComponent implements OnInit {
   alumno: any = null;
   alumnoEncontrado: boolean = false;
   alumnoExistente: boolean = false;
-  notebooksDisponibles: any[] = [];
+  notebooksDisponibles: Notebook[] = [];
   isLoading = false;
   busquedaRealizada = false;
 
@@ -49,15 +59,17 @@ export class SolicitudesComponent implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.searchForm = this.fb.group({
-      rut: ['', [Validators.required, Validators.pattern(/^[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9kK]$/)]]
+      rut: ['', [Validators.required, Validators.pattern((/^[0-9]{7,8}$/))]]
     });
 
     this.enrolForm = this.fb.group({
-      nombre: ['', Validators.required],
+      name: ['', Validators.required],
+      lastname: ['', Validators.required],
       rut: [{ value: '', disabled: true }, Validators.required],
-      sede: ['', Validators.required],
-      carrera: ['', Validators.required],
-      telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
+      dv: ['', Validators.required],
+      campus: ['', Validators.required],
+      career: ['', Validators.required],
+      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]],
       email: ['', [Validators.required, Validators.email]]
     });
 
@@ -96,8 +108,19 @@ export class SolicitudesComponent implements OnInit {
         }
       },
       (error) => {
-        console.error('Error al buscar alumno:', error);
-        this.snackBar.open('Error al buscar el alumno', 'Cerrar', { duration: 3000 });
+        if (error.status === 404) {
+          this.busquedaRealizada = true;
+          this.alumno = null;
+          this.alumnoEncontrado = false;
+          this.alumnoExistente = false;
+          this.enrolForm.patchValue({ rut });
+          this.enrolForm.get('rut')?.enable();
+          this.snackBar.open('Alumno no encontrado. Complete el registro.', 'Cerrar', { duration: 3000 });
+        } else {
+          console.error('Error al buscar alumno:', error);
+          this.snackBar.open('Error al buscar el alumno. Intente nuevamente.', 'Cerrar', { duration: 3000 });
+        }
+        this.isLoading = false;
       },
       () => {
         this.isLoading = false;
@@ -112,7 +135,16 @@ export class SolicitudesComponent implements OnInit {
     }
 
     this.isLoading = true;
-    const alumnoData = this.enrolForm.value;
+    const alumnoData = {
+      name: this.enrolForm.value.name,
+      lastname: this.enrolForm.value.lastname,
+      rut: this.enrolForm.value.rut, // Enviar como string
+      dv: this.enrolForm.value.dv,
+      campus: this.enrolForm.value.campus,
+      career: this.enrolForm.value.career,
+      phone: this.enrolForm.value.phone,
+      email: this.enrolForm.value.email
+    };
     this.prestamoService.registrarAlumno(alumnoData).subscribe(
       (nuevoAlumno) => {
         this.alumno = nuevoAlumno;

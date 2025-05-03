@@ -5,7 +5,7 @@
     
     <div class="mat-card">
       <div class="mat-card-title">Portátiles Disponibles</div>
-      <div class="mat-card-content">{{ inventarioNotebooks }}</div>
+      <div class="mat-card-content">{{ notebooksDisponibles }}</div>
     </div>
 
     <div class="mat-card">
@@ -35,7 +35,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let solicitud of historialSolicitudes">
-            <td><strong>{{ solicitud.usuario }}</strong></td>
+            <td><strong>{{ solicitud.student }}</strong></td>
             <td>{{ solicitud.notebook }}</td>
             <td>{{ solicitud.fechaPrestamo }}</td>
             <td>{{ solicitud.fechaDevolucion }}</td>
