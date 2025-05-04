@@ -22,8 +22,30 @@
     <div class="mat-card">
       <div class="mat-card-title">Estado del Préstamo</div>
       <div class="mat-card-content">
-        <p><strong>Estado:</strong> {{ studentData.estadoPrestamo }}</p>
-        <p *ngIf="studentData.fechaPrestamo"><strong>Fecha y Hora:</strong> {{ studentData.fechaPrestamo }}</p>
+        <p *ngIf="studentData.estadoPrestamo">
+          <strong>Estado:</strong> 
+          <span [ngClass]="{
+            'estado-activo': studentData.estadoPrestamo === 'Activo' && !isExpired,
+            'estado-pendiente': studentData.estadoPrestamo === 'Pendiente' || (studentData.estadoPrestamo === 'Activo' && isExpired),
+            'estado-finalizado': studentData.estadoPrestamo === 'Finalizado'
+          }">
+            {{ isExpired && studentData.estadoPrestamo === 'Activo' ? 'Pendiente' : studentData.estadoPrestamo }}
+          </span>
+        </p>
+        <div *ngIf="studentData.notebook" class="notebook-info">
+          <p><strong>Marca:</strong> {{ studentData.notebook.marca }}</p>
+          <p><strong>Modelo:</strong> {{ studentData.notebook.modelo }}</p>
+          <p><strong>Número de Serie:</strong> {{ studentData.notebook.serialNumber }}</p>
+        </div>
+        <p *ngIf="studentData.fechaPrestamoFormateada">
+          <strong>Fecha y Hora de Préstamo:</strong> 
+          <span [innerHTML]="studentData.fechaPrestamoFormateada | replace: '\n': '<br>'"></span>
+        </p>
+        <p *ngIf="studentData.fechaDevolucionFormateada">
+          <strong>Fecha de Devolución:</strong> 
+          <span [innerHTML]="studentData.fechaDevolucionFormateada | replace: '\n': '<br>'"></span>
+        </p>
+        <p *ngIf="!studentData.estadoPrestamo" class="sin-prestamos">No tienes préstamos activos en este momento.</p>
       </div>
     </div>
 
@@ -32,30 +54,29 @@
       <div class="mat-card-title">Bloqueos</div>
       <div class="mat-card-content">
         <div *ngIf="studentData.bloqueos?.length > 0">
-          <strong>Bloqueos Activos:</strong>
+          <p><strong>Bloqueos Activos:</strong></p>
           <ul>
-            <li *ngFor="let bloqueo of studentData.bloqueos">{{ bloqueo }}</li>
+            <li *ngFor="let bloqueo of studentData.bloqueos" class="bloqueo-item">{{ bloqueo }}</li>
           </ul>
         </div>
-        <p *ngIf="!studentData.bloqueos || studentData.bloqueos.length === 0">No posee bloqueos.</p>
+        <p *ngIf="!studentData.bloqueos || studentData.bloqueos.length === 0" class="sin-bloqueos">No posees bloqueos actualmente.</p>
       </div>
     </div>
 
     <!-- Tiempo Restante para Devolución -->
-    <div class="mat-card">
+    <div class="mat-card" *ngIf="studentData.estadoPrestamo === 'Activo' || studentData.estadoPrestamo === 'Pendiente'">
       <div class="mat-card-title">Tiempo Restante para Devolución</div>
       <div class="mat-card-content">
-        <p *ngIf="studentData.tiempoRestante">
-          <strong>Tiempo Restante:</strong> {{ countdown }}
-        </p>
-        <p *ngIf="!studentData.tiempoRestante">
-          No hay préstamos activos.
+        <p *ngIf="!isExpired" class="contador-activo">{{ countdown }}</p>
+        <p *ngIf="isExpired" class="contador-expirado">{{ countdown }}</p>
+        <p *ngIf="isExpired" class="alerta-expirado">
+          Has excedido el tiempo de préstamo. Por favor devuelve el notebook lo antes posible.
         </p>
       </div>
     </div>
   </div>
 
-  <div *ngIf="!studentData">
-    <p>No se encontró información del alumno.</p>
+  <div *ngIf="!studentData" class="mat-card sin-datos">
+    <p>No se encontró información del alumno. Por favor verifica el RUT ingresado.</p>
   </div>
 </div>

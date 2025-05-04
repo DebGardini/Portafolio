@@ -1,7 +1,7 @@
 /* General styles for the home page */
 .home-container {
   background-color: #ffffff;
-  max-width: 500px;
+  max-width: 800px;
   margin: 0 auto;
   margin-top: 20px;
   padding: 20px;
@@ -12,74 +12,131 @@
 
 h1 {
   color: #2c3e50;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   text-align: center;
 }
 
 .student-search {
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #fff;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-login-toggle {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.admin-login-toggle a {
+  color: #3498db;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.admin-login-toggle a:hover {
+  color: #2980b9;
 }
 
 .admin-login {
-  margin-bottom: 30px;
+  margin-top: 20px;
   padding: 20px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #fff;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 h2 {
-  color: #2c3e50;
-  margin-bottom: 15px;
+  color: #34495e;
+  margin-top: 24px;
+  margin-bottom: 16px;
   font-weight: 500;
   text-align: center;
 }
 
+form {
+  display: flex;
+  flex-direction: column;
+}
+
 label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 8px;
+  font-weight: 500;
   color: #555;
 }
 
 input {
   width: 96%;
-  padding: 8px;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 16px;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 button {
-  padding: 10px 10px;
+  padding: 12px;
   font-size: 16px;
-  color: #ffffff;
-  background-color: #ff9e18;
+  color: white;
+  background-color: #3498db;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   display: block;
   margin-left: auto;
   margin-right: 0;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
 }
 
 a {
   cursor: pointer;
   color: #2c3e50;
-  text-decoration:underline;
+  text-decoration: underline;
   font-weight: bold;
   display: block;
   text-align: right;
   margin-bottom: 30px;
 }
 
-button:hover {
-  background-color: #e68a00;
+/* Estilos para mensajes de error */
+.login-error {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  border-left: 4px solid #c62828;
+  animation: shake 0.5s;
+}
+
+.form-error {
+  color: #c62828;
+  font-size: 14px;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }

@@ -12,7 +12,10 @@ export class AuthGuard implements CanActivate {
     if (this.authService.isAuthenticated()) {
       return true;
     } else {
-      alert('Necesitas iniciar sesión como administrador para acceder a esta sección.');
+      // Guardar mensaje para mostrar en la página principal
+      sessionStorage.setItem('auth_redirect_reason', 'Acceso restringido. Solo administradores.');
+      
+      // Redirigir a la página principal donde se mostrará el formulario de login
       this.router.navigate(['/']);
       return false;
     }

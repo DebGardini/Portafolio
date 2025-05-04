@@ -8,29 +8,40 @@
     <h2>Consultar Estado del Préstamo</h2>
     <form [formGroup]="studentSearchForm" (ngSubmit)="searchStudent()">
       <label for="rut">RUT del Alumno</label>
-      <input id="rut" formControlName="rut" type="text" placeholder="Ej: 12.345.678-9">
+      <input id="rut" formControlName="rut" type="text" placeholder="Ej: 12345678-9">
 
-      <button type="submit">Consultar</button>
+      <button type="submit" [disabled]="studentSearchForm.invalid">Consultar</button>
     </form>
   </div>
 
   <!-- Botón para mostrar el formulario de inicio de sesión -->
   <div class="admin-login-toggle">
-    <a (click)="toggleAdminLogin()">Iniciar Sesión como Administrador</a>
+    <a (click)="toggleAdminLogin()">{{ showAdminLogin ? 'Ocultar formulario de acceso' : 'Iniciar Sesión como Administrador' }}</a>
   </div>
 
   <!-- Formulario de inicio de sesión para administradores -->
   <div class="admin-login" *ngIf="showAdminLogin">
     <h2>Iniciar Sesión como Administrador</h2>
+    <div *ngIf="loginError" class="login-error">
+      {{ loginError }}
+    </div>
     <form [formGroup]="adminLoginForm" (ngSubmit)="loginAsAdmin()">
       <label for="username">Usuario</label>
       <input id="username" formControlName="username" type="text" placeholder="Usuario">
+      <div *ngIf="adminLoginForm.get('username')?.invalid && adminLoginForm.get('username')?.touched" class="form-error">
+        Usuario requerido
+      </div>
 
       <label for="password">Contraseña</label>
       <input id="password" formControlName="password" type="password" placeholder="Contraseña">
+      <div *ngIf="adminLoginForm.get('password')?.invalid && adminLoginForm.get('password')?.touched" class="form-error">
+        Contraseña requerida
+      </div>
 
-      <button type="submit">Iniciar Sesión</button>
+      <button type="submit" [disabled]="adminLoginForm.invalid || isLoading">
+        <span *ngIf="!isLoading">Iniciar Sesión</span>
+        <span *ngIf="isLoading">Cargando...</span>
+      </button>
     </form>
-
   </div>
 </div>

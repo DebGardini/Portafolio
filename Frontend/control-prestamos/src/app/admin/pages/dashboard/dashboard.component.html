@@ -4,29 +4,67 @@
   <div class="dashboard-grid">
     
     <div class="mat-card">
-      <div class="mat-card-title">Notebooks Disponibles</div>
-      <div class="mat-card-content">{{ notebooksDisponibles }}</div>
+      <div class="card-icon">
+        <mat-icon>laptop</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="mat-card-title">Notebooks Totales</div>
+        <div class="mat-card-content">{{ notebooksTotalesCount }}</div>
+      </div>
     </div>
 
     <div class="mat-card">
-      <div class="mat-card-title">Préstamos Activos</div>
-      <div class="mat-card-content">{{ prestamosActivos }}</div>
+      <div class="card-icon">
+        <mat-icon>laptop_chromebook</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="mat-card-title">Notebooks Disponibles</div>
+        <div class="mat-card-content">{{ notebooksDisponiblesCount }}</div>
+      </div>
     </div>
 
     <div class="mat-card">
-      <div class="mat-card-title">Préstamos Vencidos</div>
-      <div class="mat-card-content">{{ prestamosVencidos }}</div>
+      <div class="card-icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="mat-card-title">Préstamos Activos</div>
+        <div class="mat-card-content">{{ prestamosActivos }}</div>
+      </div>
+    </div>
+
+    <div class="mat-card">
+      <div class="card-icon">
+        <mat-icon>warning</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="mat-card-title">Préstamos Pendientes</div>
+        <div class="mat-card-content">{{ prestamosVencidos }}</div>
+      </div>
+    </div>
+
+    <div class="mat-card">
+      <div class="card-icon">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <div class="card-content">
+        <div class="mat-card-title">Préstamos Finalizados</div>
+        <div class="mat-card-content">{{ prestamosFinalizados }}</div>
+      </div>
     </div>
   </div>
 
   
   <div class="mat-card resumen-card">
-    <div class="mat-card-title">Historial de préstamos de notebooks</div>
-    <div class="mat-elevation-z2">
+    <div class="mat-card-title">
+      <mat-icon>history</mat-icon>
+      Historial de préstamos de notebooks
+    </div>
+    <div class="mat-elevation-z2 table-container">
       <table class="full-width">
         <thead>
           <tr>
-            <th>Usuario</th>
+            <th>Alumno</th>
             <th>Notebook</th>
             <th>Fecha de Préstamo</th>
             <th>Fecha de Devolución</th>
@@ -37,9 +75,25 @@
           <tr *ngFor="let solicitud of historialSolicitudes">
             <td><strong>{{ solicitud.student }}</strong></td>
             <td>{{ solicitud.notebook }}</td>
-            <td>{{ solicitud.fechaPrestamo }}</td>
-            <td>{{ solicitud.fechaDevolucion }}</td>
-            <td><span [ngClass]="solicitud.estado">{{ solicitud.estado }}</span></td>
+            <td [innerHTML]="formatDate(solicitud.fechaPrestamo) | replace: '\n': '<br>'"></td>
+            <td>
+              <ng-container *ngIf="solicitud.estado === 'Activo'">
+                <span *ngIf="!solicitud.isExpired">{{ solicitud.tiempoRestante || 'Calculando...' }}</span>
+                <span *ngIf="solicitud.isExpired" class="tiempo-expirado">Tiempo vencido</span>
+              </ng-container>
+              <ng-container *ngIf="solicitud.estado !== 'Activo'">
+                <span [innerHTML]="formatDate(solicitud.fechaDevolucion) | replace: '\n': '<br>'"></span>
+              </ng-container>
+            </td>
+            <td>
+              <span [ngClass]="{
+                'activo': solicitud.estado === 'Activo' && !solicitud.isExpired,
+                'pendiente': solicitud.estado === 'Activo' && solicitud.isExpired,
+                'finalizado': solicitud.estado === 'Finalizado'
+              }">
+                {{ solicitud.isExpired && solicitud.estado === 'Activo' ? 'Pendiente' : solicitud.estado }}
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>

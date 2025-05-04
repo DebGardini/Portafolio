@@ -1,23 +1,25 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PrestamoService } from '../admin/services/prestamo.service';
-import { CommonModule } from '@angular/common';
-import { HeaderComponent } from "../admin/components/header.component";
 import { AuthService } from '../admin/services/auth.service';
+import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { HeaderComponent } from '../admin/components/header.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-home',
+  standalone: true,
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
-  imports: [CommonModule, ReactiveFormsModule, HeaderComponent]
+  imports: [CommonModule, ReactiveFormsModule, HeaderComponent, MatSnackBarModule]
 })
 export class HomeComponent {
   adminLoginForm: FormGroup;
   studentSearchForm: FormGroup;
   isLoading = false;
+  loginError = '';
   studentData: any = null;
   showAdminLogin = false; 
 
@@ -26,7 +28,8 @@ export class HomeComponent {
     private router: Router,
     private prestamoService: PrestamoService,
     private authService: AuthService,
-    private http: HttpClient 
+    private http: HttpClient,
+    private snackBar: MatSnackBar 
   ) {
     this.adminLoginForm = this.fb.group({
       username: ['', Validators.required],
@@ -34,66 +37,67 @@ export class HomeComponent {
     });
 
     this.studentSearchForm = this.fb.group({
-      rut: ['', [Validators.required, Validators.pattern(/^[0-9]{7,8}$/)]]
+      rut: ['', [Validators.required, Validators.pattern(/^[0-9]{7,8}(-[0-9kK])?$/)]]
     });
+    
+    // Verificar si hay un mensaje de redirección
+    const redirectReason = sessionStorage.getItem('auth_redirect_reason');
+    if (redirectReason) {
+      this.showMessage(redirectReason);
+      sessionStorage.removeItem('auth_redirect_reason');
+      this.showAdminLogin = true; // Mostrar automáticamente el formulario de login
+    }
   }
 
   toggleAdminLogin() {
     this.showAdminLogin = !this.showAdminLogin;
+    this.loginError = ''; // Limpiar errores anteriores
   }
 
   loginAsAdmin() {
     if (this.adminLoginForm.invalid) {
-      alert('Por favor complete todos los campos.');
+      this.showMessage('Por favor complete todos los campos correctamente');
       return;
     }
-
-  /*  const { username, password } = this.adminLoginForm.value;
-    this.http.post(`${environment.apiUrl}/account/login`, { username, password }).subscribe(
-      (response: any) => {
-        this.authService.setToken(response.token);
-        this.router.navigate(['/admin']);
-      },
-      (error) => {
-        console.error('Error al iniciar sesión:', error);
-        alert('Credenciales incorrectas.');
-      );
-        }*/
-      }
-
-  searchStudent() {
-    console.log('Método searchStudent ejecutado'); 
-
-    if (this.studentSearchForm.invalid) {
-      alert('Por favor ingrese un RUT válido.');
-      console.log('Formulario inválido:', this.studentSearchForm.value); 
-      return;
-    }
-
-    const rut = this.studentSearchForm.value.rut;
-    console.log('RUT ingresado:', rut); 
-
+    
     this.isLoading = true;
-
-    this.prestamoService.buscarAlumnoPorRut(rut).subscribe(
-      data => {
-        console.log('Respuesta del servicio:', data); 
-        if (data) {
-          this.router.navigate(['/estudiante'], { queryParams: { rut: data.rut } }).then(() => {
-            console.log('Redirección exitosa al componente status'); 
-          }).catch(err => {
-            console.error('Error al redirigir al componente status:', err); 
-          });
-        } else {
-          alert('Alumno no encontrado.');
-        }
+    this.loginError = '';
+    
+    const { username, password } = this.adminLoginForm.value;
+    
+    this.authService.login(username, password).subscribe(
+      success => {
         this.isLoading = false;
+        if (success) {
+          this.router.navigate(['/admin']);
+          this.showMessage('Inicio de sesión exitoso');
+        } else {
+          this.loginError = 'Credenciales incorrectas. Por favor intente nuevamente.';
+        }
       },
       error => {
-        console.error('Error al buscar alumno:', error); 
-        alert('Alumno no encontrado.');
         this.isLoading = false;
+        this.loginError = 'Error al conectar con el servidor. Por favor intente más tarde.';
+        console.error('Error de autenticación:', error);
       }
     );
+  }
+
+  searchStudent() {
+    if (this.studentSearchForm.invalid) {
+      this.showMessage('Por favor ingrese un RUT válido');
+      return;
+    }
+    
+    const rut = this.studentSearchForm.value.rut;
+    this.router.navigate(['/student/status'], { queryParams: { rut } });
+  }
+  
+  private showMessage(message: string): void {
+    this.snackBar.open(message, 'Cerrar', {
+      duration: 5000,
+      horizontalPosition: 'center',
+      verticalPosition: 'bottom',
+    });
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -69,5 +69,128 @@ export class PrestamoService {
   // Registrar un préstamo con el formato completo
   registrarPrestamo(prestamoData: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/loans/new`, prestamoData);
+  }
+
+  // Buscar información completa del alumno por RUT (incluye préstamos)
+  getEstadoCompletoAlumno(rut: string): Observable<any> {
+    // Extraer solo la parte numérica del RUT (sin dígito verificador)
+    const rutNumerico = rut.split('-')[0];
+    
+    // Primero, obtenemos todos los notebooks para tenerlos disponibles
+    return this.http.get<any>(`${this.apiUrl}/Notebooks/all`).pipe(
+      switchMap(notebooksResponse => {
+        const notebooks = Array.isArray(notebooksResponse) ? notebooksResponse : notebooksResponse?.$values || [];
+        
+        // Comenzamos obteniendo el alumno
+        return this.buscarAlumnoPorRut(rutNumerico).pipe(
+          switchMap(alumno => {
+            if (!alumno) {
+              return of(null);
+            }
+            
+            // Obtenemos los préstamos activos
+            return this.http.get<any>(`${this.apiUrl}/loans/active/all`).pipe(
+              switchMap(response => {
+                const prestamosActivos = response?.$values || [];
+                
+                // Buscamos un préstamo activo para este estudiante
+                const prestamoActivo = prestamosActivos.find((p: any) => 
+                  p.studentRut === parseInt(rutNumerico) || p.studentRut === rutNumerico
+                );
+                
+                // Si encontramos un préstamo activo
+                if (prestamoActivo) {
+                  // Buscamos el notebook en el array de notebooks
+                  const notebook = notebooks.find((n: any) => n.id === prestamoActivo.notebookId);
+                  
+                  // Verificamos si el préstamo ha expirado
+                  const now = new Date();
+                  const startDate = new Date(prestamoActivo.beginDate);
+                  const endTime = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // 2 horas
+                  const tiempoExpirado = now > endTime;
+                  
+                  return of({
+                    ...alumno,
+                    fechaPrestamo: prestamoActivo.beginDate,
+                    fechaDevolucion: prestamoActivo.endDate || null,
+                    notebookId: prestamoActivo.notebookId,
+                    notebook: notebook ? {
+                      id: notebook.id,
+                      marca: notebook.brand,
+                      modelo: notebook.model,
+                      serialNumber: notebook.serialNumber
+                    } : null,
+                    estadoPrestamo: tiempoExpirado ? 'Pendiente' : 'Activo',
+                    bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                  });
+                } else {
+                  // No tiene préstamos activos, verificamos si tiene finalizados
+                  return this.http.get<any>(`${this.apiUrl}/loans/returned/all`).pipe(
+                    map(returnedResponse => {
+                      const prestamosRetornados = returnedResponse?.$values || [];
+                      
+                      // Buscamos un préstamo finalizado para este estudiante
+                      const prestamoFinalizado = prestamosRetornados.find((p: any) => 
+                        p.studentRut === parseInt(rutNumerico) || p.studentRut === rutNumerico
+                      );
+                      
+                      if (prestamoFinalizado) {
+                        // Buscamos el notebook en el array de notebooks
+                        const notebook = notebooks.find((n: any) => n.id === prestamoFinalizado.notebookId);
+                        
+                        return {
+                          ...alumno,
+                          fechaPrestamo: prestamoFinalizado.beginDate,
+                          fechaDevolucion: prestamoFinalizado.endDate,
+                          notebookId: prestamoFinalizado.notebookId,
+                          notebook: notebook ? {
+                            id: notebook.id,
+                            marca: notebook.brand,
+                            modelo: notebook.model,
+                            serialNumber: notebook.serialNumber
+                          } : null,
+                          estadoPrestamo: 'Finalizado',
+                          bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                        };
+                      } else {
+                        // No tiene ningún préstamo
+                        return {
+                          ...alumno,
+                          estadoPrestamo: null,
+                          bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                        };
+                      }
+                    }),
+                    catchError(() => {
+                      return of({
+                        ...alumno,
+                        estadoPrestamo: null,
+                        bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                      });
+                    })
+                  );
+                }
+              }),
+              catchError(() => {
+                // Error al obtener préstamos activos
+                return of({
+                  ...alumno,
+                  estadoPrestamo: null,
+                  bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                });
+              })
+            );
+          }),
+          catchError(error => {
+            console.error('Error al buscar información del alumno:', error);
+            return of(null);
+          })
+        );
+      }),
+      catchError(error => {
+        console.error('Error al obtener notebooks:', error);
+        return of(null);
+      })
+    );
   }
 }

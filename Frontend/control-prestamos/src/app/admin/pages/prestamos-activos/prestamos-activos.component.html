@@ -1,90 +1,75 @@
-<div class="container mx-auto p-4">
-  <h2 class="text-2xl font-semibold mb-4">Préstamos Activos</h2>
-
-  <!-- Barra de búsqueda -->
-  <mat-form-field appearance="outline" class="w-full mb-4">
-    <mat-label>Buscar por usuario o notebook</mat-label>
-    <input matInput [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Ej. Juan López o MacBook">
-  </mat-form-field>
-
-  <!-- Tabla de préstamos -->
-  <table mat-table [dataSource]="filteredData" class="mat-elevation-z8 w-full">
-
-    <!-- Columna: Usuario -->
-    <ng-container matColumnDef="usuario">
-      <th mat-header-cell *matHeaderCellDef> Usuario </th>
-      <td mat-cell *matCellDef="let element"> {{ element.usuario }} </td>
-    </ng-container>
-
-    <!-- Columna: Notebook -->
-    <ng-container matColumnDef="notebook">
-      <th mat-header-cell *matHeaderCellDef> Notebook </th>
-      <td mat-cell *matCellDef="let element"> {{ element.notebook }} </td>
-    </ng-container>
-
-    <!-- Columna: Fecha Préstamo -->
-    <ng-container matColumnDef="fechaPrestamo">
-      <th mat-header-cell *matHeaderCellDef> Fecha Préstamo </th>
-      <td mat-cell *matCellDef="let element"> {{ element.fechaPrestamo | date:'shortDate' }} </td>
-    </ng-container>
-
-    <!-- Columna: Hora Límite -->
-    <ng-container matColumnDef="horaLimite">
-      <th mat-header-cell *matHeaderCellDef> Hora Límite </th>
-      <td mat-cell *matCellDef="let element"> {{ element.horaLimite | date:'shortTime' }} </td>
-    </ng-container>
-
-    <!-- Columna: Tiempo Restante -->
-    <ng-container matColumnDef="tiempoRestante">
-      <th mat-header-cell *matHeaderCellDef> Tiempo Restante </th>
-      <td mat-cell *matCellDef="let element"> {{ calcularTiempoRestante(element.horaLimite) }} </td>
-    </ng-container>
-
-    <!-- Columna: Estado -->
-    <ng-container matColumnDef="estado">
-      <th mat-header-cell *matHeaderCellDef> Estado </th>
-      <td mat-cell *matCellDef="let element">
-        <span [ngClass]="getEstadoClass(element)">
-          {{ getEstadoLabel(element) }}
-        </span>
-      </td>
-    </ng-container>
-
-    <!-- Columna: Acción -->
-    <ng-container matColumnDef="accion">
-      <th mat-header-cell *matHeaderCellDef> Acción </th>
-      <td mat-cell *matCellDef="let element" class="flex gap-2">
-        <button mat-button color="accent" (click)="editarPrestamo(element)">Editar</button>
-        <button mat-button color="warn" (click)="bloquearAlumno(element)">Bloquear</button>
-      </td>
-    </ng-container>
-
-    <!-- Filas -->
-    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
-    <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
-  </table>
-</div>
-
-
-<!-- Modal de editar préstamo -->
-<ng-template #editarModal let-data>
-  <h2 mat-dialog-title>Editar Estado del Préstamo</h2>
-  <mat-dialog-content>
-    <p><strong>Usuario:</strong> {{ prestamoSeleccionado?.usuario }}</p>
-    <p><strong>Notebook:</strong> {{ prestamoSeleccionado?.notebook }}</p>
-
-    <mat-form-field appearance="fill" class="w-full mt-4">
-      <mat-label>Estado</mat-label>
-      <mat-select [(ngModel)]="nuevoEstado">
-        <mat-option value="Pendiente">Pendiente</mat-option>
-        <mat-option value="Activo">Activo</mat-option>
-        <mat-option value="Finalizado">Finalizado</mat-option>
-      </mat-select>
+<div class="contenedor">
+  <h1>Préstamos Activos</h1>
+  
+  <!-- Barra de búsqueda independiente -->
+  <div class="search-container-standalone">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar por nombre o RUT</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Ej. Juan López o 12345678-9">
+      <mat-icon matSuffix>search</mat-icon>
     </mat-form-field>
-
-  </mat-dialog-content>
-  <mat-dialog-actions align="end">
-    <button mat-button mat-dialog-close>Cancelar</button>
-    <button mat-button color="primary" (click)="guardarCambios()">Guardar</button>
-  </mat-dialog-actions>
-</ng-template>
+  </div>
+  
+  <!-- Listado general de préstamos activos -->
+  <div class="mat-card resumen-card">
+    <div class="mat-card-title">
+      <mat-icon>list</mat-icon>
+      Listado general de préstamos activos
+    </div>
+    
+    <div class="mat-elevation-z2 table-container">
+      <table class="full-width">
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th>Notebook</th>
+            <th>Fecha de Préstamo</th>
+            <th>Tiempo Restante</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let prestamo of filteredData">
+            <td><strong>{{ prestamo.student }}</strong></td>
+            <td>{{ prestamo.notebook }}</td>
+            <td [innerHTML]="formatDate(prestamo.fechaPrestamo) | replace: '\n': '<br>'"></td>
+            <td>
+              <span *ngIf="!prestamo.isExpired">{{ prestamo.tiempoRestante || 'Calculando...' }}</span>
+              <span *ngIf="prestamo.isExpired" class="tiempo-expirado">Tiempo vencido</span>
+            </td>
+            <td>
+              <span [ngClass]="{
+                'activo': !prestamo.isExpired,
+                'pendiente': prestamo.isExpired
+              }">
+                {{ prestamo.isExpired ? 'Pendiente' : 'Activo' }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button mat-icon-button color="primary" (click)="finalizarPrestamo(prestamo)" title="Finalizar préstamo">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+                <button mat-icon-button color="accent" (click)="eliminarPrestamo(prestamo)" title="Eliminar préstamo">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="bloquearAlumno(prestamo)" title="Bloquear alumno">
+                  <mat-icon>block</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredData.length === 0">
+            <td colspan="6" class="no-data">No hay préstamos activos</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Spinner de carga general -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+</div>
