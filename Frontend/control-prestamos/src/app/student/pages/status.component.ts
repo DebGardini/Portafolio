@@ -44,10 +44,15 @@ export class StatusComponent implements OnInit, OnDestroy {
   }
   
   loadStudentData(rut: string): void {
-    this.prestamoService.getEstadoCompletoAlumno(rut).subscribe(
-      (data) => {
+    this.prestamoService.getEstadoCompletoAlumno(rut).subscribe({
+      next: (data) => {
+        console.log("Datos completos del estudiante recibidos:", data);
+        if (!data) {
+          console.error('No se recibieron datos del estudiante');
+          return;
+        }
+        
         this.studentData = data;
-        console.log("Datos completos del estudiante:", this.studentData);
         
         // Formatear las fechas si existen
         if (this.studentData?.fechaPrestamo) {
@@ -64,10 +69,10 @@ export class StatusComponent implements OnInit, OnDestroy {
           this.startTimer();
         }
       },
-      (error) => {
+      error: (error) => {
         console.error('Error fetching student data:', error);
       }
-    );
+    });
   }
   
   // Iniciar temporizador para actualizar el tiempo restante

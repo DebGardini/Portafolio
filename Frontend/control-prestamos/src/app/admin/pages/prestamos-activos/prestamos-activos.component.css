@@ -161,6 +161,15 @@ tbody tr:hover {
   z-index: 1000;
 }
 
+/* Estilo para el número de serie */
+.serial-number {
+  color: #666;
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 4px;
+  display: inline-block;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .action-buttons {

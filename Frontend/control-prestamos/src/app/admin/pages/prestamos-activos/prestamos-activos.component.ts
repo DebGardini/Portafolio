@@ -11,10 +11,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { PrestamosActivosService } from './../../services/prestamos-activos.service';
 import { ResumenService } from '../../services/resumen.service';
 import { interval, Subscription } from 'rxjs';
 import { ReplacePipe } from '../../pipes/replace.pipe';
+import { BlockStudentDialogComponent } from '../../components/dialogs/block-student-dialog.component';
 
 @Component({
   selector: 'app-prestamos-activos',
@@ -32,6 +34,7 @@ import { ReplacePipe } from '../../pipes/replace.pipe';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatIconModule,
+    MatDialogModule,
     ReplacePipe
   ],
   templateUrl: './prestamos-activos.component.html',
@@ -55,7 +58,8 @@ export class PrestamosActivosComponent implements OnInit, OnDestroy {
   constructor(
     private prestamosService: PrestamosActivosService,
     private resumenService: ResumenService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -79,13 +83,20 @@ export class PrestamosActivosComponent implements OnInit, OnDestroy {
           solicitud.estado === 'Activo'
         );
         
+        // Ordenar los préstamos por fecha de préstamo, del más reciente al más antiguo
+        this.prestamosActivos.sort((a, b) => {
+          const fechaA = new Date(a.fechaPrestamo).getTime();
+          const fechaB = new Date(b.fechaPrestamo).getTime();
+          return fechaB - fechaA; // Orden descendente (más reciente primero)
+        });
+        
         this.filteredData = [...this.prestamosActivos];
         this.isLoading = false;
         
         // Iniciar el temporizador para actualizar el tiempo restante
         this.startTimer();
         
-        console.log('Préstamos activos cargados:', this.prestamosActivos);
+        console.log('Préstamos activos cargados y ordenados:', this.prestamosActivos);
       },
       error: (error) => {
         console.error('Error al obtener préstamos activos:', error);
@@ -114,7 +125,8 @@ export class PrestamosActivosComponent implements OnInit, OnDestroy {
       return nameMatch || rutMatch;
     });
     
-    // Los resultados se mantienen en pantalla hasta que el campo quede vacío
+    // Los resultados ya estarán ordenados por fecha porque prestamosActivos ya está ordenado
+    // y filteredData es un subconjunto de prestamosActivos
   }
   
   // Formatear fechas como DD-MES-AAAA y hora como HH:MM:SS
@@ -228,17 +240,54 @@ export class PrestamosActivosComponent implements OnInit, OnDestroy {
   }
 
   bloquearAlumno(element: any) {
-    if (confirm(`¿Seguro que deseas bloquear a ${element.student}?`)) {
+    // Primero confirmamos que el usuario desea bloquear al alumno
+    if (confirm(`¿Desea proceder a bloquear a ${element.student}? \nEste proceso finalizará el préstamo actual y aplicará una sanción.`)) {
       this.isLoading = true;
-      this.prestamosService.sancionarAlumno(element.studentId).subscribe({
+      
+      // Primero finalizamos el préstamo para liberar el notebook
+      this.prestamosService.finalizarPrestamo(element.studentId).subscribe({
         next: () => {
-          this.snackBar.open(`${element.student} ha sido bloqueado`, 'Cerrar', { duration: 3000 });
-          this.sancionados.push(element.studentId);
-          this.isLoading = false;
+          // Una vez finalizado el préstamo, mostramos el diálogo para la sanción
+          const dialogRef = this.dialog.open(BlockStudentDialogComponent, {
+            width: '500px',
+            data: {
+              student: element.student,
+              studentId: element.studentId,
+              loanId: element.loanId // Si existe
+            }
+          });
+          
+          // Cuando se cierra el diálogo, procesamos la sanción
+          dialogRef.afterClosed().subscribe(result => {
+            this.isLoading = false;
+            
+            if (result) {
+              this.isLoading = true;
+              
+              // Aplicar la sanción con los datos del diálogo
+              this.prestamosService.aplicarSancion(element.studentId, {
+                description: result.description,
+                finishDate: result.finishDate,
+                loanId: result.loanId
+              }).subscribe({
+                next: () => {
+                  this.snackBar.open(`Sanción aplicada a ${element.student} correctamente`, 'Cerrar', { duration: 3000 });
+                  this.sancionados.push(element.studentId);
+                  this.isLoading = false;
+                  this.cargarPrestamosActivos();
+                },
+                error: (error) => {
+                  console.error('Error al aplicar la sanción:', error);
+                  this.snackBar.open('Error al aplicar la sanción', 'Cerrar', { duration: 3000 });
+                  this.isLoading = false;
+                }
+              });
+            }
+          });
         },
         error: (error) => {
-          console.error('Error al bloquear al alumno:', error);
-          this.snackBar.open('Error al bloquear al alumno', 'Cerrar', { duration: 3000 });
+          console.error('Error al finalizar el préstamo:', error);
+          this.snackBar.open('Error al finalizar el préstamo, no se pudo bloquear al alumno', 'Cerrar', { duration: 3000 });
           this.isLoading = false;
         }
       });

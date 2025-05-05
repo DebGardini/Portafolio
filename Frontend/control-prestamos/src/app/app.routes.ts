@@ -23,6 +23,10 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/pages/prestamos-activos/prestamos-activos.component').then(m => m.PrestamosActivosComponent)
       },
       {
+        path: 'gestion-bloqueos',
+        loadComponent: () => import('./admin/pages/gestion-bloqueos/gestion-bloqueos.component').then(m => m.GestionBloqueosComponent)
+      },
+      {
         path: 'solicitudes',
         loadComponent: () => import('./admin/pages/solicitudes/solicitudes.component').then(m => m.SolicitudesComponent)
       }

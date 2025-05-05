@@ -73,8 +73,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let solicitud of historialSolicitudes">
-            <td><strong>{{ solicitud.student }}</strong></td>
-            <td>{{ solicitud.notebook }}</td>
+            <td><strong>{{ solicitud.student }}</strong>{{solicitud.studentDv ? ' | RUT: ' + solicitud.studentId + '-' + solicitud.studentDv : ''}}</td>
+            <td>{{ solicitud.notebook }} <br><small class="serial-number">(S/N: {{ solicitud.notebookSerial }})</small></td>
             <td [innerHTML]="formatDate(solicitud.fechaPrestamo) | replace: '\n': '<br>'"></td>
             <td>
               <ng-container *ngIf="solicitud.estado === 'Activo'">
@@ -93,6 +93,8 @@
               }">
                 {{ solicitud.isExpired && solicitud.estado === 'Activo' ? 'Pendiente' : solicitud.estado }}
               </span>
+              <!-- Cartel BLOQUEADO en nueva línea -->
+              <div *ngIf="solicitud.blocked" class="bloqueado-label">BLOQUEADO</div>
             </td>
           </tr>
         </tbody>

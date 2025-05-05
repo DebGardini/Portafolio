@@ -26,7 +26,7 @@
   <div *ngIf="busquedaRealizada && !isLoading" class="resultado-busqueda">
     <mat-card *ngIf="alumnoEncontrado" class="card resultado-card">
       <mat-card-content>
-        <p class="alumno-info">Alumno encontrado: <strong>{{alumno?.name}} {{alumno?.lastname || ''}}</strong> | RUT: {{alumno?.rut}}</p>
+        <p class="alumno-info">Alumno encontrado: <strong>{{alumno?.name}} {{alumno?.lastname || ''}}</strong> | RUT: {{alumno?.rut}}{{alumno?.dv ? '-' + alumno?.dv : ''}}</p>
       </mat-card-content>
     </mat-card>
     
@@ -50,14 +50,14 @@
     <form [formGroup]="enrolForm" (ngSubmit)="enrolarAlumno()" class="form-grid">
       <!-- Campos del formulario para enrolar alumno -->
       <mat-form-field appearance="outline">
-        <mat-label>Nombre Completo</mat-label>
+        <mat-label>Nombre</mat-label>
         <input matInput formControlName="name">
         <mat-error *ngIf="enrolForm.get('name')?.hasError('required')">
           El nombre es obligatorio
         </mat-error>
       </mat-form-field>
       <mat-form-field appearance="outline">
-        <mat-label>Nombre Completo</mat-label>
+        <mat-label>Apellido</mat-label>
         <input matInput formControlName="lastname">
         <mat-error *ngIf="enrolForm.get('lastname')?.hasError('required')">
           El nombre es obligatorio

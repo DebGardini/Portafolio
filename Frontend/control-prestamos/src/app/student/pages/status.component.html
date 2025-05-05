@@ -10,7 +10,7 @@
       <div class="mat-card-content">
         <p><strong>Nombre:</strong> {{ studentData.name }}</p>
         <p><strong>Apellido:</strong> {{ studentData.lastname }}</p>
-        <p><strong>RUT:</strong> {{ studentData.rut }}</p>
+        <p><strong>RUT:</strong> {{ studentData.rut }}{{studentData.dv ? '-' + studentData.dv : ''}}</p>
         <p><strong>Sede:</strong> {{ studentData.campus }}</p>
         <p><strong>Carrera:</strong> {{ studentData.career }}</p>
       </div>
@@ -30,34 +30,55 @@
             {{ isExpired && studentData.estadoPrestamo === 'Activo' ? 'Pendiente' : studentData.estadoPrestamo }}
           </span>
         </p>
+        
+        <!-- Mostrar información del notebook solo si hay uno asociado -->
         <div *ngIf="studentData.notebook" class="notebook-info">
           <p><strong>Marca:</strong> {{ studentData.notebook.marca }}</p>
           <p><strong>Modelo:</strong> {{ studentData.notebook.modelo }}</p>
           <p><strong>Número de Serie:</strong> {{ studentData.notebook.serialNumber }}</p>
         </div>
+        
+        <!-- Mostrar fecha de préstamo solo si existe -->
         <p *ngIf="studentData.fechaPrestamoFormateada">
           <strong>Fecha y Hora de Préstamo:</strong> 
           <span [innerHTML]="studentData.fechaPrestamoFormateada | replace: '\n': '<br>'"></span>
         </p>
+        
+        <!-- Mostrar fecha de devolución solo si existe -->
         <p *ngIf="studentData.fechaDevolucionFormateada">
           <strong>Fecha de Devolución:</strong> 
           <span [innerHTML]="studentData.fechaDevolucionFormateada | replace: '\n': '<br>'"></span>
         </p>
-        <p *ngIf="!studentData.estadoPrestamo" class="sin-prestamos">No tienes préstamos activos en este momento.</p>
+        
+        <!-- Mostrar mensaje de "No posee préstamos activos" cuando no hay estado de préstamo -->
+        <p *ngIf="!studentData.estadoPrestamo" class="sin-prestamos">
+          No posee préstamos activos.
+        </p>
       </div>
     </div>
 
     <!-- Bloqueos -->
-    <div class="mat-card">
+    <div class="mat-card" [ngClass]="{'bloqueado-card': studentData.blocked}">
       <div class="mat-card-title">Bloqueos</div>
       <div class="mat-card-content">
-        <div *ngIf="studentData.bloqueos?.length > 0">
-          <p><strong>Bloqueos Activos:</strong></p>
-          <ul>
-            <li *ngFor="let bloqueo of studentData.bloqueos" class="bloqueo-item">{{ bloqueo }}</li>
-          </ul>
+        <div *ngIf="studentData.blocked">
+          <p class="estado-bloqueado">BLOQUEADO</p>
+          
+          <!-- Mensaje general de bloqueo -->
+          <p class="bloqueo-general">
+            Tu cuenta está actualmente bloqueada. Por favor comunícate con el administrador para más información.
+          </p>
+          
+          <!-- Detalles de sanciones si existen -->
+          <div *ngIf="studentData.sanciones?.length > 0">
+            <p><strong>Detalles de la sanción:</strong></p>
+            <div *ngFor="let sancion of studentData.sanciones" class="sancion-info">
+              <p><strong>Descripción:</strong> {{ sancion.description }}</p>
+              <p><strong>Vence el:</strong> {{ formatDate(sancion.finishDate) }}</p>
+            </div>
+          </div>
         </div>
-        <p *ngIf="!studentData.bloqueos || studentData.bloqueos.length === 0" class="sin-bloqueos">No posees bloqueos actualmente.</p>
+        <p *ngIf="!studentData.blocked" class="sin-bloqueos">No posees bloqueos actualmente.</p>
       </div>
     </div>
 

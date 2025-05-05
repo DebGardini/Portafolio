@@ -83,6 +83,16 @@ export class PrestamosActivosService {
     );
   }
 
+  aplicarSancion(rut: string, sancionData: { description: string; finishDate: Date; loanId?: number }): Observable<any> {
+    // Función para aplicar una sanción con período de tiempo específico
+    return this.http.put<any>(`${this.apiUrl}/sanctions/apply/${rut}`, sancionData).pipe(
+      catchError(error => {
+        console.error('Error al aplicar sanción al alumno:', error);
+        throw error;
+      })
+    );
+  }
+
   actualizarPrestamo(rut: string, datos: any): Observable<any> {
     // Función para actualizar el estado de un préstamo
     return this.http.patch<any>(`${this.apiUrl}/loans/${rut}`, datos).pipe(

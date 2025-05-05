@@ -110,7 +110,7 @@ export class ResumenService {
           return of({ $values: [] });
         })
       ),
-      notebooks: this.http.get<any>(`${this.apiUrl}/Notebooks/all`).pipe(
+      notebooks: this.http.get<any>(`${this.apiUrl}/notebooks/all`).pipe(
         map(response => Array.isArray(response) ? response : response?.$values || []),
         catchError(error => {
           console.error('Error al obtener notebooks:', error);
@@ -164,6 +164,7 @@ export class ResumenService {
           return {
             studentId: solicitud.studentRut || solicitud.studentId, // Guardamos el ID del estudiante
             notebook: notebook ? `${notebook.brand} - ${notebook.model}` : 'Desconocido',
+            notebookSerial: notebook ? notebook.serialNumber : 'N/A', // Añadimos el número de serie
             fechaPrestamo: solicitud.beginDate,
             fechaDevolucion: null,
             estado: 'Activo',
@@ -177,6 +178,7 @@ export class ResumenService {
           return {
             studentId: solicitud.studentRut || solicitud.studentId, // Guardamos el ID del estudiante
             notebook: notebook ? `${notebook.brand} - ${notebook.model}` : 'Desconocido',
+            notebookSerial: notebook ? notebook.serialNumber : 'N/A', // Añadimos el número de serie
             fechaPrestamo: solicitud.beginDate,
             fechaDevolucion: solicitud.endDate,
             estado: 'Finalizado',
@@ -204,16 +206,20 @@ export class ResumenService {
               // Extraer nombre y apellido con comprobaciones exhaustivas
               const nombre = student.name || student.Name || '';
               const apellido = student.lastname || student.Lastname || '';
+              const dv = student.dv || student.Dv || '';
               
               console.log('Nombre extraído:', nombre);
               console.log('Apellido extraído:', apellido);
+              console.log('DV extraído:', dv);
               
               const nombreCompleto = `${nombre} ${apellido}`.trim();
               console.log('Nombre completo formateado:', nombreCompleto);
               
               return {
                 ...solicitud,
-                student: nombreCompleto || `RUT: ${solicitud.studentId}`
+                student: nombreCompleto || `RUT: ${solicitud.studentId}${dv ? '-' + dv : ''}`,
+                studentDv: dv, // Añadir el dígito verificador como una propiedad separada
+                blocked: student.blocked || student.Blocked || false // Incluir información de bloqueo
               };
             }),
             catchError(error => {
@@ -284,7 +290,7 @@ export class ResumenService {
 
   // Obtener todos los notebooks
   getAllNotebooks(): Observable<any[]> {
-    return this.http.get<any>(`${this.apiUrl}/Notebooks/all`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/notebooks/all`).pipe(
       map(response => {
         console.log('API response - all notebooks:', response);
         if (response && response.$values && Array.isArray(response.$values)) {

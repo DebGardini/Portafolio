@@ -3,12 +3,13 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'https://loancontrol-cmc2c9b7h0f8hbb8.brazilsouth-01.azurewebsites.net/api';
+  private apiUrl = environment.apiUrl;
   private isLoggedIn = false;
 
   constructor(private router: Router, private http: HttpClient) {

@@ -65,6 +65,32 @@ p {
   font-weight: 500;
 }
 
+.estado-bloqueado {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 20px;
+  background-color: #F44336;
+  padding: 8px 12px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 12px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.bloqueado-card {
+  border-left: 5px solid #F44336;
+}
+
+.sancion-info {
+  background-color: #FFEBEE;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid #F44336;
+}
+
 /* Estilos para el contador */
 .contador-activo {
   font-size: 24px;

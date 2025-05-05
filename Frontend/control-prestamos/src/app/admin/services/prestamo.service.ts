@@ -93,7 +93,7 @@ export class PrestamoService {
     const rutNumerico = rut.split('-')[0];
     
     // Primero, obtenemos todos los notebooks para tenerlos disponibles
-    return this.http.get<any>(`${this.apiUrl}/Notebooks/all`).pipe(
+    return this.http.get<any>(`${this.apiUrl}/notebooks/all`).pipe(
       switchMap(notebooksResponse => {
         const notebooks = Array.isArray(notebooksResponse) ? notebooksResponse : notebooksResponse?.$values || [];
         
@@ -125,62 +125,62 @@ export class PrestamoService {
                   const endTime = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // 2 horas
                   const tiempoExpirado = now > endTime;
                   
-                  return of({
-                    ...alumno,
-                    fechaPrestamo: prestamoActivo.beginDate,
-                    fechaDevolucion: prestamoActivo.endDate || null,
-                    notebookId: prestamoActivo.notebookId,
-                    notebook: notebook ? {
-                      id: notebook.id,
-                      marca: notebook.brand,
-                      modelo: notebook.model,
-                      serialNumber: notebook.serialNumber
-                    } : null,
-                    estadoPrestamo: tiempoExpirado ? 'Pendiente' : 'Activo',
-                    bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
-                  });
-                } else {
-                  // No tiene préstamos activos, verificamos si tiene finalizados
-                  return this.http.get<any>(`${this.apiUrl}/loans/returned/all`).pipe(
-                    map(returnedResponse => {
-                      const prestamosRetornados = returnedResponse?.$values || [];
+                  // Obtenemos las sanciones activas
+                  return this.http.get<any>(`${this.apiUrl}/sanctions/active/${rutNumerico}`).pipe(
+                    map(sanciones => {
+                      const sancionesActivas = sanciones?.$values || [];
                       
-                      // Buscamos un préstamo finalizado para este estudiante
-                      const prestamoFinalizado = prestamosRetornados.find((p: any) => 
-                        p.studentRut === parseInt(rutNumerico) || p.studentRut === rutNumerico
-                      );
-                      
-                      if (prestamoFinalizado) {
-                        // Buscamos el notebook en el array de notebooks
-                        const notebook = notebooks.find((n: any) => n.id === prestamoFinalizado.notebookId);
-                        
-                        return {
-                          ...alumno,
-                          fechaPrestamo: prestamoFinalizado.beginDate,
-                          fechaDevolucion: prestamoFinalizado.endDate,
-                          notebookId: prestamoFinalizado.notebookId,
-                          notebook: notebook ? {
-                            id: notebook.id,
-                            marca: notebook.brand,
-                            modelo: notebook.model,
-                            serialNumber: notebook.serialNumber
-                          } : null,
-                          estadoPrestamo: 'Finalizado',
-                          bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
-                        };
-                      } else {
-                        // No tiene ningún préstamo
-                        return {
-                          ...alumno,
-                          estadoPrestamo: null,
-                          bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
-                        };
-                      }
+                      return {
+                        ...alumno,
+                        fechaPrestamo: prestamoActivo.beginDate,
+                        fechaDevolucion: prestamoActivo.endDate || null,
+                        notebookId: prestamoActivo.notebookId,
+                        notebook: notebook ? {
+                          id: notebook.id,
+                          marca: notebook.brand,
+                          modelo: notebook.model,
+                          serialNumber: notebook.serialNumber
+                        } : null,
+                        estadoPrestamo: tiempoExpirado ? 'Pendiente' : 'Activo',
+                        bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : [],
+                        sanciones: sancionesActivas
+                      };
                     }),
                     catchError(() => {
                       return of({
                         ...alumno,
-                        estadoPrestamo: null,
+                        fechaPrestamo: prestamoActivo.beginDate,
+                        fechaDevolucion: prestamoActivo.endDate || null,
+                        notebookId: prestamoActivo.notebookId,
+                        notebook: notebook ? {
+                          id: notebook.id,
+                          marca: notebook.brand,
+                          modelo: notebook.model,
+                          serialNumber: notebook.serialNumber
+                        } : null,
+                        estadoPrestamo: tiempoExpirado ? 'Pendiente' : 'Activo',
+                        bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
+                      });
+                    })
+                  );
+                } else {
+                  // No tiene préstamos activos, verificamos sanciones
+                  return this.http.get<any>(`${this.apiUrl}/sanctions/active/${rutNumerico}`).pipe(
+                    map(sanciones => {
+                      const sancionesActivas = sanciones?.$values || [];
+                      const tieneSanciones = sancionesActivas && sancionesActivas.length > 0;
+                      
+                      return {
+                        ...alumno,
+                        estadoPrestamo: null, // No posee préstamos activos
+                        bloqueos: tieneSanciones ? ['Bloqueo por sanción aplicada'] : (alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []),
+                        sanciones: sancionesActivas
+                      };
+                    }),
+                    catchError(() => {
+                      return of({
+                        ...alumno,
+                        estadoPrestamo: null, // No posee préstamos activos
                         bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
                       });
                     })
@@ -191,7 +191,7 @@ export class PrestamoService {
                 // Error al obtener préstamos activos
                 return of({
                   ...alumno,
-                  estadoPrestamo: null,
+                  estadoPrestamo: null, // No posee préstamos activos
                   bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
                 });
               })

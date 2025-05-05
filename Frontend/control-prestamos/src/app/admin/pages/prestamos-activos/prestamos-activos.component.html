@@ -31,8 +31,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let prestamo of filteredData">
-            <td><strong>{{ prestamo.student }}</strong></td>
-            <td>{{ prestamo.notebook }}</td>
+            <td><strong>{{ prestamo.student }}</strong>{{prestamo.studentDv ? ' | RUT: ' + prestamo.studentId + '-' + prestamo.studentDv : ''}}</td>
+            <td>{{ prestamo.notebook }} <br><small class="serial-number">(S/N: {{ prestamo.notebookSerial }})</small></td>
             <td [innerHTML]="formatDate(prestamo.fechaPrestamo) | replace: '\n': '<br>'"></td>
             <td>
               <span *ngIf="!prestamo.isExpired">{{ prestamo.tiempoRestante || 'Calculando...' }}</span>

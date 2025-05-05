@@ -1,0 +1,65 @@
+<div class="contenedor">
+  <h1>Gestión de Bloqueos</h1>
+  
+  <!-- Barra de búsqueda independiente -->
+  <div class="search-container-standalone">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar por nombre o RUT</mat-label>
+      <input matInput [(ngModel)]="searchTerm" (input)="applyFilter()" placeholder="Ej. Juan López o 12345678-9">
+      <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+  </div>
+  
+  <!-- Listado general de alumnos bloqueados -->
+  <div class="mat-card resumen-card">
+    <div class="mat-card-title">
+      <mat-icon>block</mat-icon>
+      Listado general de alumnos bloqueados
+    </div>
+    
+    <div class="mat-elevation-z2 table-container">
+      <table class="full-width">
+        <thead>
+          <tr>
+            <th>Alumno</th>
+            <th>RUT</th>
+            <th>Motivo del Bloqueo</th>
+            <th>Fecha de Vencimiento</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let alumno of filteredData">
+            <td><strong>{{ alumno.studentName || 'Sin nombre' }}</strong></td>
+            <td>{{ alumno.studentRut || 'Sin RUT' }}{{ alumno.studentDv ? '-' + alumno.studentDv : '' }}</td>
+            <td>{{ alumno.description || 'Sin descripción' }}</td>
+            <td [innerHTML]="formatDate(alumno.finishDate) | replace: '\n': '<br>'"></td>
+            <td>
+              <div class="action-buttons">
+                <button mat-icon-button color="primary" (click)="quitarBloqueo(alumno)" 
+                        [disabled]="!alumno.studentRut" 
+                        [title]="alumno.studentRut ? 'Quitar bloqueo' : 'No se puede quitar (sin RUT)'">
+                  <mat-icon>lock_open</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredData.length === 0 && !isLoading">
+            <td colspan="5" class="no-data">No hay alumnos bloqueados</td>
+          </tr>
+          <tr *ngIf="isLoading">
+            <td colspan="5" class="loading-data">
+              <mat-spinner diameter="30" style="margin: 0 auto;"></mat-spinner>
+              <span>Cargando datos...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Spinner de carga general -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+</div>

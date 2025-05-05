@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router'; // Importar Router para navegación
 import { PrestamoService } from '../../services/prestamo.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -57,7 +58,8 @@ export class SolicitudesComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private prestamoService: PrestamoService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private router: Router // Inyectar Router para navegación
   ) {
     this.searchForm = this.fb.group({
       rut: ['', [Validators.required, Validators.pattern((/^[0-9]{7,8}$/))]]
@@ -145,41 +147,69 @@ export class SolicitudesComponent implements OnInit {
           this.alumno = alumno;
           this.alumnoEncontrado = true;
           
-          // Verificación redundante de seguridad
-          this.prestamoService.verificarPrestamosActivos(rut).subscribe(
-            (tienePrestamos) => {
-              if (tienePrestamos && tienePrestamos.hasPrestamos) {
-                // Doble verificación de seguridad
-                this.alumnoExistente = false;
-                this.prestamoBloqueado = true;
+          // Verificación de préstamos activos y sanciones
+          this.prestamoService.getEstadoCompletoAlumno(rut).subscribe(
+            (estadoAlumno) => {
+              if (estadoAlumno) {
+                // Verificar si tiene sanciones activas
+                if (estadoAlumno.sanciones && estadoAlumno.sanciones.length > 0) {
+                  this.alumnoExistente = false;
+                  this.prestamoBloqueado = true;
+                  
+                  // Calcular la fecha de fin de la sanción más lejana
+                  const fechaFinSancion = estadoAlumno.sanciones.reduce((fechaMax: Date, sancion: any) => {
+                    const fechaSancion = new Date(sancion.finishDate);
+                    return fechaSancion > fechaMax ? fechaSancion : fechaMax;
+                  }, new Date(estadoAlumno.sanciones[0].finishDate));
+                  
+                  const fechaFormateada = this.formatearFecha(fechaFinSancion);
+                  
+                  const mensaje = `ADVERTENCIA: ${alumno.name} ${alumno.lastname} está bloqueado por una sanción hasta el ${fechaFormateada}. No puede solicitar préstamos.`;
+                  this.snackBar.open(mensaje, 'Entendido', { duration: 8000 });
+                  this.isLoading = false;
+                  return;
+                }
                 
-                const mensaje = tienePrestamos.isExpired ? 
-                  `ADVERTENCIA: ${alumno.name} ${alumno.lastname} tiene un préstamo pendiente por devolver. No puede solicitar otro préstamo.` :
-                  `ADVERTENCIA: ${alumno.name} ${alumno.lastname} ya tiene un préstamo activo. No puede solicitar otro préstamo.`;
+                // Verificar si tiene préstamos activos (segunda verificación)
+                if (estadoAlumno.estadoPrestamo === 'Activo' || estadoAlumno.estadoPrestamo === 'Pendiente') {
+                  this.alumnoExistente = false;
+                  this.prestamoBloqueado = true;
+                  
+                  const mensaje = estadoAlumno.estadoPrestamo === 'Pendiente' ? 
+                    `ADVERTENCIA: ${alumno.name} ${alumno.lastname} tiene un préstamo pendiente por devolver. No puede solicitar otro préstamo.` :
+                    `ADVERTENCIA: ${alumno.name} ${alumno.lastname} ya tiene un préstamo activo. No puede solicitar otro préstamo.`;
+                  
+                  this.snackBar.open(mensaje, 'Entendido', { duration: 8000 });
+                  this.isLoading = false;
+                  return;
+                }
                 
-                this.snackBar.open(mensaje, 'Entendido', { duration: 8000 });
-              } else {
                 // El alumno está disponible para préstamo
                 this.alumnoExistente = true;
                 this.prestamoBloqueado = false;
                 
-                // Corregido el mensaje cuando el alumno es encontrado
                 const nombreCompleto = alumno.name && alumno.lastname ? 
                   `${alumno.name} ${alumno.lastname}` : 
                   (alumno.nombre || 'Estudiante');
                 this.snackBar.open(`Alumno ${nombreCompleto} encontrado`, 'Cerrar', { duration: 3000 });
+              } else {
+                // Error al obtener el estado del alumno
+                this.alumnoExistente = false;
+                this.prestamoBloqueado = true;
+                
+                this.snackBar.open(`Error al verificar el estado del alumno. Por seguridad, no se permite continuar.`, 
+                  'Entendido', { duration: 5000 });
               }
+              this.isLoading = false;
             },
             (error) => {
-              console.error('Error al verificar préstamos:', error);
+              console.error('Error al obtener estado completo del alumno:', error);
               // Por seguridad, NO permitimos continuar en caso de error
               this.alumnoExistente = false;
               this.prestamoBloqueado = true;
               
-              this.snackBar.open(`Error al verificar préstamos activos. Por seguridad, no se permite continuar.`, 
+              this.snackBar.open(`Error al verificar el estado del alumno. Por seguridad, no se permite continuar.`, 
                 'Entendido', { duration: 5000 });
-            },
-            () => {
               this.isLoading = false;
             }
           );
@@ -283,6 +313,10 @@ export class SolicitudesComponent implements OnInit {
         // Recargar la lista de notebooks disponibles
         this.cargarNotebooksDisponibles();
         this.resetForms();
+        this.isLoading = false; // Añadido: desactivar indicador de carga después de éxito
+
+        // Redirigir al dashboard después de realizar el préstamo
+        this.router.navigate(['/admin']);
       },
       (error) => {
         console.error('Error al realizar el préstamo:', error);
@@ -317,5 +351,16 @@ export class SolicitudesComponent implements OnInit {
 
   cancelar(): void {
     this.resetForms();
+  }
+
+  // Función para formatear fecha en formato DD-MMM-AAAA
+  private formatearFecha(fecha: Date): string {
+    const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = meses[fecha.getMonth()];
+    const anio = fecha.getFullYear();
+    
+    return `${dia}-${mes}-${anio}`;
   }
 }
