@@ -26,7 +26,14 @@
   <div *ngIf="busquedaRealizada && !isLoading" class="resultado-busqueda">
     <mat-card *ngIf="alumnoEncontrado" class="card resultado-card">
       <mat-card-content>
-        <p class="alumno-info">Alumno encontrado: <strong>{{alumno?.nombre}}</strong> | RUT: {{alumno?.rut}}</p>
+        <p class="alumno-info">Alumno encontrado: <strong>{{alumno?.name}} {{alumno?.lastname || ''}}</strong> | RUT: {{alumno?.rut}}</p>
+      </mat-card-content>
+    </mat-card>
+    
+    <!-- Mensaje de advertencia cuando el alumno tiene préstamo activo o pendiente -->
+    <mat-card *ngIf="alumnoEncontrado && prestamoBloqueado" class="card resultado-card error-card">
+      <mat-card-content>
+        <p class="error-message">⚠️ Este alumno tiene un préstamo activo o pendiente y no puede solicitar otro préstamo.</p>
       </mat-card-content>
     </mat-card>
     

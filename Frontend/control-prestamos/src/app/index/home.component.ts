@@ -90,7 +90,8 @@ export class HomeComponent {
     }
     
     const rut = this.studentSearchForm.value.rut;
-    this.router.navigate(['/student/status'], { queryParams: { rut } });
+    // Redirección corregida a la ruta /estudiante con el parámetro rut
+    this.router.navigate(['/estudiante'], { queryParams: { rut } });
   }
   
   private showMessage(message: string): void {

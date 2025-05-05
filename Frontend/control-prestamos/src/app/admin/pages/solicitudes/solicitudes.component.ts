@@ -49,6 +49,7 @@ export class SolicitudesComponent implements OnInit {
   alumno: any = null;
   alumnoEncontrado: boolean = false;
   alumnoExistente: boolean = false;
+  prestamoBloqueado: boolean = false;
   notebooksDisponibles: Notebook[] = [];
   isLoading = false;
   busquedaRealizada = false;
@@ -90,21 +91,107 @@ export class SolicitudesComponent implements OnInit {
 
     const rut = this.searchForm.value.rut;
     this.isLoading = true;
+    
+    // Primero verificamos directamente si tiene préstamos activos
+    this.prestamoService.verificarPrestamosActivos(rut).subscribe(
+      (tienePrestamos) => {
+        if (tienePrestamos && tienePrestamos.hasPrestamos) {
+          // Ya sabemos que tiene préstamos, bloqueamos de inmediato
+          this.busquedaRealizada = true;
+          this.isLoading = false;
+          this.prestamoBloqueado = true;
+          
+          // Ahora buscamos el alumno para mostrar su información
+          this.prestamoService.buscarAlumnoPorRut(rut).subscribe(
+            (alumno) => {
+              if (alumno) {
+                this.alumno = alumno;
+                this.alumnoEncontrado = true;
+                this.alumnoExistente = false; // No permitimos continuar
+                
+                const nombreCompleto = alumno.name && alumno.lastname ? 
+                  `${alumno.name} ${alumno.lastname}` : 
+                  (alumno.nombre || 'Estudiante');
+                
+                const tipoMensaje = tienePrestamos.isExpired ? 
+                  'tiene un préstamo pendiente por devolver' : 
+                  'ya tiene un préstamo activo';
+                
+                this.snackBar.open(`⚠️ IMPORTANTE: ${nombreCompleto} ${tipoMensaje}. No puede solicitar otro préstamo.`, 
+                  'Entendido', { duration: 8000 });
+              }
+            }
+          );
+          return; // Terminamos aquí, no continuamos con el flujo normal
+        } else {
+          // No tiene préstamos activos, continuamos con el flujo normal
+          this.continuarBusquedaSinPrestamos(rut);
+        }
+      },
+      (error) => {
+        console.error('Error verificando préstamos activos:', error);
+        // Por precaución, continuamos con el flujo normal pero con advertencia en consola
+        this.continuarBusquedaSinPrestamos(rut);
+      }
+    );
+  }
+  
+  // Función auxiliar para continuar con el flujo cuando no hay préstamos activos
+  private continuarBusquedaSinPrestamos(rut: string): void {
     this.prestamoService.buscarAlumnoPorRut(rut).subscribe(
       (alumno) => {
         this.busquedaRealizada = true;
         if (alumno) {
           this.alumno = alumno;
           this.alumnoEncontrado = true;
-          this.alumnoExistente = true;
-          this.snackBar.open(`Alumno ${alumno.nombre} encontrado`, 'Cerrar', { duration: 3000 });
+          
+          // Verificación redundante de seguridad
+          this.prestamoService.verificarPrestamosActivos(rut).subscribe(
+            (tienePrestamos) => {
+              if (tienePrestamos && tienePrestamos.hasPrestamos) {
+                // Doble verificación de seguridad
+                this.alumnoExistente = false;
+                this.prestamoBloqueado = true;
+                
+                const mensaje = tienePrestamos.isExpired ? 
+                  `ADVERTENCIA: ${alumno.name} ${alumno.lastname} tiene un préstamo pendiente por devolver. No puede solicitar otro préstamo.` :
+                  `ADVERTENCIA: ${alumno.name} ${alumno.lastname} ya tiene un préstamo activo. No puede solicitar otro préstamo.`;
+                
+                this.snackBar.open(mensaje, 'Entendido', { duration: 8000 });
+              } else {
+                // El alumno está disponible para préstamo
+                this.alumnoExistente = true;
+                this.prestamoBloqueado = false;
+                
+                // Corregido el mensaje cuando el alumno es encontrado
+                const nombreCompleto = alumno.name && alumno.lastname ? 
+                  `${alumno.name} ${alumno.lastname}` : 
+                  (alumno.nombre || 'Estudiante');
+                this.snackBar.open(`Alumno ${nombreCompleto} encontrado`, 'Cerrar', { duration: 3000 });
+              }
+            },
+            (error) => {
+              console.error('Error al verificar préstamos:', error);
+              // Por seguridad, NO permitimos continuar en caso de error
+              this.alumnoExistente = false;
+              this.prestamoBloqueado = true;
+              
+              this.snackBar.open(`Error al verificar préstamos activos. Por seguridad, no se permite continuar.`, 
+                'Entendido', { duration: 5000 });
+            },
+            () => {
+              this.isLoading = false;
+            }
+          );
         } else {
           this.alumno = null;
           this.alumnoEncontrado = false;
           this.alumnoExistente = false;
+          this.prestamoBloqueado = false;
           this.enrolForm.patchValue({ rut });
           this.enrolForm.get('rut')?.enable();
           this.snackBar.open('Alumno no encontrado. Complete el registro.', 'Cerrar', { duration: 3000 });
+          this.isLoading = false;
         }
       },
       (error) => {
@@ -113,6 +200,7 @@ export class SolicitudesComponent implements OnInit {
           this.alumno = null;
           this.alumnoEncontrado = false;
           this.alumnoExistente = false;
+          this.prestamoBloqueado = false;
           this.enrolForm.patchValue({ rut });
           this.enrolForm.get('rut')?.enable();
           this.snackBar.open('Alumno no encontrado. Complete el registro.', 'Cerrar', { duration: 3000 });
@@ -120,9 +208,6 @@ export class SolicitudesComponent implements OnInit {
           console.error('Error al buscar alumno:', error);
           this.snackBar.open('Error al buscar el alumno. Intente nuevamente.', 'Cerrar', { duration: 3000 });
         }
-        this.isLoading = false;
-      },
-      () => {
         this.isLoading = false;
       }
     );
@@ -163,34 +248,45 @@ export class SolicitudesComponent implements OnInit {
   }
 
   realizarPrestamo(): void {
+    // Verificar si el préstamo está bloqueado
+    if (this.prestamoBloqueado) {
+      this.snackBar.open('No es posible realizar el préstamo. El alumno ya tiene un préstamo activo o pendiente.', 'Entendido', { duration: 5000 });
+      return;
+    }
+    
     if (this.prestamoForm.invalid || !this.alumno) {
       this.snackBar.open('Por favor seleccione un notebook', 'Cerrar', { duration: 3000 });
       return;
     }
 
     this.isLoading = true;
+    const notebookId = parseInt(this.prestamoForm.value.notebookId);
+    
+    // Asegurarnos que el RUT sea numérico para enviar al servidor
+    const studentRut = parseInt(String(this.alumno.rut).replace(/\D/g, ''));
+    
+    // Corregir formato del objeto para que coincida con lo que espera la API
     const solicitudData = {
-      id: 0,
-      notebookId: this.prestamoForm.value.notebookId,
-      notebook: null,
-      studentRut: this.alumno.rut,
-      student: null,
-      beginDate: new Date().toISOString(),
-      endDate: null,
-      loanState: 0,
-      sanction: null
+      NotebookId: notebookId,  // Primera letra mayúscula
+      StudentRut: studentRut,  // Primera letra mayúscula
+      BeginDate: new Date().toISOString(),  // Primera letra mayúscula
+      LoanState: 0  // Primera letra mayúscula, corresponde a préstamo activo
     };
+
+    console.log('Enviando datos de préstamo:', solicitudData);
 
     this.prestamoService.registrarPrestamo(solicitudData).subscribe(
       (response) => {
+        console.log('Préstamo registrado exitosamente:', response);
         this.snackBar.open('Préstamo realizado con éxito', 'Cerrar', { duration: 3000 });
+        
+        // Recargar la lista de notebooks disponibles
+        this.cargarNotebooksDisponibles();
         this.resetForms();
       },
       (error) => {
         console.error('Error al realizar el préstamo:', error);
-        this.snackBar.open('Error al realizar el préstamo', 'Cerrar', { duration: 3000 });
-      },
-      () => {
+        this.snackBar.open('Error al realizar el préstamo: ' + (error.error?.message || 'Verifique los datos'), 'Cerrar', { duration: 5000 });
         this.isLoading = false;
       }
     );
@@ -215,6 +311,7 @@ export class SolicitudesComponent implements OnInit {
     this.alumno = null;
     this.alumnoEncontrado = false;
     this.alumnoExistente = false;
+    this.prestamoBloqueado = false;
     this.busquedaRealizada = false;
   }
 

@@ -1,6 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
@@ -8,11 +9,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Obtener el token de autenticación
   const token = authService.getToken();
   
-  // Si hay un token y la solicitud es a la API, añadirlo a los headers
-  if (token && req.url.includes('http://localhost:5166/api')) {
+  // Usar la URL de la API desde el entorno
+  if (token && req.url.includes(environment.apiUrl)) {
     req = req.clone({
       setHeaders: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        'Access-Control-Allow-Origin': '*', // Ayuda con CORS
+        'Content-Type': 'application/json'
       }
     });
   }

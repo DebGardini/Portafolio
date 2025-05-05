@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 interface Prestamo {
   id: number;
@@ -48,7 +49,7 @@ interface Student {
   providedIn: 'root',
 })
 export class ResumenService {
-  private apiUrl = 'http://localhost:5166/api';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
@@ -97,10 +98,24 @@ export class ResumenService {
   // Obtener historial de solicitudes activas y retornadas
   getHistorialSolicitudes(): Observable<any[]> {
     return forkJoin({
-      activas: this.http.get<any>(`${this.apiUrl}/loans/active/all`),
-      retornadas: this.http.get<any>(`${this.apiUrl}/loans/returned/all`),
+      activas: this.http.get<any>(`${this.apiUrl}/loans/active/all`).pipe(
+        catchError(error => {
+          console.error('Error al obtener préstamos activos:', error);
+          return of({ $values: [] });
+        })
+      ),
+      retornadas: this.http.get<any>(`${this.apiUrl}/loans/returned/all`).pipe(
+        catchError(error => {
+          console.error('Error al obtener préstamos retornados:', error);
+          return of({ $values: [] });
+        })
+      ),
       notebooks: this.http.get<any>(`${this.apiUrl}/Notebooks/all`).pipe(
-        map(response => Array.isArray(response) ? response : response?.$values || [])
+        map(response => Array.isArray(response) ? response : response?.$values || []),
+        catchError(error => {
+          console.error('Error al obtener notebooks:', error);
+          return of([]);
+        })
       ),
     }).pipe(
       switchMap(({ activas, retornadas, notebooks }) => {
@@ -108,8 +123,36 @@ export class ResumenService {
         console.log('API response - retornadas:', retornadas);
         console.log('API response - notebooks:', notebooks);
         
-        const solicitudesActivas = activas?.$values || [];
-        const solicitudesRetornadas = retornadas?.$values || [];
+        // Manejo de cualquier formato posible de respuesta
+        let solicitudesActivas: any[] = [];
+        if (activas) {
+          if (activas.$values && Array.isArray(activas.$values)) {
+            solicitudesActivas = activas.$values;
+          } else if (Array.isArray(activas)) {
+            solicitudesActivas = activas;
+          } else if (typeof activas === 'object') {
+            // Intentar extraer un array de alguna propiedad del objeto
+            const possibleArrays = Object.values(activas).filter(value => Array.isArray(value));
+            if (possibleArrays.length > 0) {
+              solicitudesActivas = possibleArrays[0];
+            }
+          }
+        }
+        
+        let solicitudesRetornadas: any[] = [];
+        if (retornadas) {
+          if (retornadas.$values && Array.isArray(retornadas.$values)) {
+            solicitudesRetornadas = retornadas.$values;
+          } else if (Array.isArray(retornadas)) {
+            solicitudesRetornadas = retornadas;
+          } else if (typeof retornadas === 'object') {
+            // Intentar extraer un array de alguna propiedad del objeto
+            const possibleArrays = Object.values(retornadas).filter(value => Array.isArray(value));
+            if (possibleArrays.length > 0) {
+              solicitudesRetornadas = possibleArrays[0];
+            }
+          }
+        }
 
         console.log('Solicitudes activas procesadas:', solicitudesActivas);
         console.log('Solicitudes retornadas procesadas:', solicitudesRetornadas);
@@ -119,7 +162,7 @@ export class ResumenService {
           console.log('Procesando préstamo activo:', solicitud);
           console.log('ID del estudiante encontrado:', solicitud.studentRut);
           return {
-            studentId: solicitud.studentRut, // Guardamos el ID del estudiante
+            studentId: solicitud.studentRut || solicitud.studentId, // Guardamos el ID del estudiante
             notebook: notebook ? `${notebook.brand} - ${notebook.model}` : 'Desconocido',
             fechaPrestamo: solicitud.beginDate,
             fechaDevolucion: null,
@@ -132,7 +175,7 @@ export class ResumenService {
           console.log('Procesando préstamo retornado:', solicitud);
           console.log('ID del estudiante encontrado:', solicitud.studentRut);
           return {
-            studentId: solicitud.studentRut, // Guardamos el ID del estudiante
+            studentId: solicitud.studentRut || solicitud.studentId, // Guardamos el ID del estudiante
             notebook: notebook ? `${notebook.brand} - ${notebook.model}` : 'Desconocido',
             fechaPrestamo: solicitud.beginDate,
             fechaDevolucion: solicitud.endDate,
@@ -275,49 +318,31 @@ export class ResumenService {
 
   // Fetch student information by ID
   getStudentById(studentId: number): Observable<Student> {
-    // Primera prueba: /students/by-rut/{studentId}
-    return this.http.get<Student>(`${this.apiUrl}/students/by-rut/${studentId}`).pipe(
+    // Asegurarnos que el ID sea un string limpio sin caracteres especiales
+    const rutNumerico = String(studentId).replace(/\D/g, '');
+    console.log('Buscando estudiante con ID/RUT (limpio):', rutNumerico);
+    
+    // Usar directamente la ruta correcta /api/students/rut/{rut}
+    return this.http.get<Student>(`${this.apiUrl}/students/rut/${rutNumerico}`).pipe(
       map(student => {
-        console.log('Estudiante encontrado por by-rut:', student);
+        console.log('Estudiante encontrado:', student);
         return student;
       }),
-      catchError(error1 => {
-        console.error(`Error al obtener estudiante por by-rut:`, error1);
+      catchError(error => {
+        console.error(`Error al obtener estudiante:`, error);
         
-        // Segunda prueba: /students/rut/{studentId}
-        return this.http.get<Student>(`${this.apiUrl}/students/rut/${studentId}`).pipe(
-          map(student => {
-            console.log('Estudiante encontrado por rut:', student);
-            return student;
-          }),
-          catchError(error2 => {
-            console.error(`Error al obtener estudiante por rut:`, error2);
-            
-            // Tercera prueba: /Students/GetByRut/{studentId}
-            return this.http.get<Student>(`${this.apiUrl}/Students/GetByRut/${studentId}`).pipe(
-              map(student => {
-                console.log('Estudiante encontrado por GetByRut:', student);
-                return student;
-              }),
-              catchError(error3 => {
-                console.error(`Error al obtener estudiante por GetByRut:`, error3);
-                
-                // Si falla, devolver objeto con RUT formateado correctamente
-                return of({
-                  Id: studentId,
-                  Rut: studentId,
-                  Name: 'Estudiante',  // Un texto genérico en lugar de vacío
-                  Lastname: `${studentId}`,  // Solo el RUT, sin prefijo
-                  Dv: '',
-                  Email: '',
-                  Phone: '',
-                  Campus: '',
-                  Career: ''
-                } as Student);
-              })
-            );
-          })
-        );
+        // Si falla, devolver objeto con RUT formateado correctamente
+        return of({
+          Id: studentId,
+          Rut: studentId,
+          Name: 'Estudiante',  // Un texto genérico en lugar de vacío
+          Lastname: `${studentId}`,  // Solo el RUT, sin prefijo
+          Dv: '',
+          Email: '',
+          Phone: '',
+          Campus: '',
+          Career: ''
+        } as Student);
       })
     );
   }

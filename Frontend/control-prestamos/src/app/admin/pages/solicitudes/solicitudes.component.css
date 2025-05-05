@@ -94,3 +94,18 @@ mat-form-field {
 button mat-spinner {
   margin: 0 auto;
 }
+
+/* Estilos para la tarjeta de error */
+.error-card {
+  background-color: #ffeeee;
+  border-left: 4px solid #f44336;
+  margin-top: 10px;
+}
+
+.error-message {
+  color: #d32f2f;
+  font-weight: 500;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}

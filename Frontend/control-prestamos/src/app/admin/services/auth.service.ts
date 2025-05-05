@@ -8,7 +8,7 @@ import { catchError, map, tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5166/api';
+  private apiUrl = 'https://loancontrol-cmc2c9b7h0f8hbb8.brazilsouth-01.azurewebsites.net/api';
   private isLoggedIn = false;
 
   constructor(private router: Router, private http: HttpClient) {
