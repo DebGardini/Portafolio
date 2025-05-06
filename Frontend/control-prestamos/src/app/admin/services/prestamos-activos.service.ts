@@ -63,15 +63,7 @@ export class PrestamosActivosService {
     );
   }
 
-  eliminarPrestamo(rut: string): Observable<void> {
-    // Esta función elimina el préstamo del sistema
-    return this.http.delete<void>(`${this.apiUrl}/loans/${rut}`).pipe(
-      catchError(error => {
-        console.error('Error al eliminar préstamo:', error);
-        throw error;
-      })
-    );
-  }
+
 
   sancionarAlumno(rut: string): Observable<void> {
     // Función para marcar al alumno como bloqueado

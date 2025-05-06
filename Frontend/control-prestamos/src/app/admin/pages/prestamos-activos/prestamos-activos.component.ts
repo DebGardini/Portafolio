@@ -222,23 +222,6 @@ export class PrestamosActivosComponent implements OnInit, OnDestroy {
     }
   }
 
-  eliminarPrestamo(element: any) {
-    if (confirm(`¿Seguro que deseas eliminar el préstamo de ${element.student}?`)) {
-      this.isLoading = true;
-      this.prestamosService.eliminarPrestamo(element.studentId).subscribe({
-        next: () => {
-          this.snackBar.open(`El préstamo de ${element.student} ha sido eliminado`, 'Cerrar', { duration: 3000 });
-          this.cargarPrestamosActivos();
-        },
-        error: (error) => {
-          console.error('Error al eliminar el préstamo:', error);
-          this.snackBar.open('Error al eliminar el préstamo', 'Cerrar', { duration: 3000 });
-          this.isLoading = false;
-        }
-      });
-    }
-  }
-
   bloquearAlumno(element: any) {
     // Primero confirmamos que el usuario desea bloquear al alumno
     if (confirm(`¿Desea proceder a bloquear a ${element.student}? \nEste proceso finalizará el préstamo actual y aplicará una sanción.`)) {

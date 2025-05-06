@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:5166/api'
+  apiUrl: 'https://loancontrol-cmc2c9b7h0f8hbb8.brazilsouth-01.azurewebsites.net/api'
 };
