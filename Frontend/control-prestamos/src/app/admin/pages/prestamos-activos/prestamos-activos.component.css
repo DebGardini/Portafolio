@@ -12,7 +12,6 @@ h1 {
   padding: 0;
 }
 
-/* Estilos para el buscador independiente */
 .search-container-standalone {
   margin-bottom: 20px;
   padding: 15px 20px;
@@ -46,7 +45,6 @@ h1 {
   background-color: white;
 }
 
-/* Estilo para la tarjeta de resumen */
 .resumen-card {
   flex-direction: column;
   align-items: stretch;
@@ -161,7 +159,6 @@ tbody tr:hover {
   z-index: 1000;
 }
 
-/* Estilo para el número de serie */
 .serial-number {
   color: #666;
   font-size: 11px;

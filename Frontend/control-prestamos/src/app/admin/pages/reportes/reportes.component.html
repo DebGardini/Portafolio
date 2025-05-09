@@ -1,0 +1,206 @@
+<div class="contenedor">
+  <!-- Header con título y filtros en la misma línea -->
+  <div class="header-row">
+    <div class="header-title">
+      <h1>Sistema de Reportes</h1>
+    </div>
+    <div class="header-filters">
+      <form [formGroup]="filterForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Período</mat-label>
+          <mat-select formControlName="periodo">
+            <mat-option value="day">Último día</mat-option>
+            <mat-option value="week">Última semana</mat-option>
+            <mat-option value="month">Último mes</mat-option>
+            <mat-option value="semester">Último semestre</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sistema de pestañas -->
+  <mat-tab-group animationDuration="0ms">
+    <!-- Pestaña: Uso de Equipos -->
+    <mat-tab label="Uso de Equipos">
+      <div class="tab-content">
+        <!-- Barra de acciones para exportación -->
+        <div class="export-actions">
+          <div class="section-title">Reporte: Uso de Equipos</div>
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="exportarExcel('equipment')" class="export-button">
+              <mat-icon>description</mat-icon>
+              Exportar a Excel
+            </button>
+            <button mat-raised-button color="accent" (click)="exportarPDF('equipment')" class="export-button">
+              <mat-icon>picture_as_pdf</mat-icon>
+              Exportar a PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor para las tarjetas en horizontal con mejor distribucion de espacio -->
+        <div class="cards-container-horizontal">
+          <!-- Card del gráfico de uso de equipos -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Uso de Equipos - Gráfico</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <!-- Gráfico de uso de equipos -->
+              <div *ngIf="loadingEquipment" class="spinner-container">
+                <mat-spinner diameter="40"></mat-spinner>
+              </div>
+              <div *ngIf="!loadingEquipment && equipmentData.length > 0" class="chart-container">
+                <canvas #equipmentChart></canvas>
+              </div>
+              <div *ngIf="!loadingEquipment && equipmentData.length === 0" class="no-data">
+                No hay datos disponibles para el período seleccionado
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Card de detalles de uso de equipos -->
+          <mat-card class="table-card">
+            <mat-card-header>
+              <mat-card-title>Detalle de Uso de Equipos</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <!-- Tabla de uso de equipos -->
+              <div *ngIf="loadingEquipment" class="spinner-container">
+                <mat-spinner diameter="40"></mat-spinner>
+              </div>
+              <div *ngIf="!loadingEquipment && equipmentData.length > 0" class="table-container">
+                <table mat-table [dataSource]="equipmentData" class="mat-elevation-z2">
+                  <!-- Columna ID -->
+                  <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef>ID</th>
+                    <td mat-cell *matCellDef="let item">{{item.id}}</td>
+                  </ng-container>
+                  
+                  <!-- Columna Marca -->
+                  <ng-container matColumnDef="marca">
+                    <th mat-header-cell *matHeaderCellDef>Marca</th>
+                    <td mat-cell *matCellDef="let item">{{item.marca}}</td>
+                  </ng-container>
+                  
+                  <!-- Columna Modelo/Serie -->
+                  <ng-container matColumnDef="modelo">
+                    <th mat-header-cell *matHeaderCellDef>Modelo / Serie</th>
+                    <td mat-cell *matCellDef="let item">
+                      <div>{{item.modelo}}</div>
+                      <div class="serial-number">Serie: {{item.serialNumber}}</div>
+                    </td>
+                  </ng-container>
+                  
+                  <!-- Columna Prestamos -->
+                  <ng-container matColumnDef="prestamos">
+                    <th mat-header-cell *matHeaderCellDef>Préstamos</th>
+                    <td mat-cell *matCellDef="let item">{{item.prestamos}}</td>
+                  </ng-container>
+                  
+                  <!-- Columna Tiempo Promedio -->
+                  <ng-container matColumnDef="tiempoPromedio">
+                    <th mat-header-cell *matHeaderCellDef>Tiempo Promedio (min)</th>
+                    <td mat-cell *matCellDef="let item">{{item.tiempoPromedio}}</td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="equipmentColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: equipmentColumns;"></tr>
+                </table>
+              </div>
+              <div *ngIf="!loadingEquipment && equipmentData.length === 0" class="no-data">
+                No hay datos disponibles para el período seleccionado
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Pestaña: Estadísticas de Estudiantes -->
+    <mat-tab label="Estadísticas de Estudiantes">
+      <div class="tab-content">
+        <!-- Barra de acciones para exportación -->
+        <div class="export-actions">
+          <div class="section-title">Reporte: Estadísticas de Estudiantes</div>
+          <div class="action-buttons">
+            <button mat-raised-button color="primary" (click)="exportarExcel('students')" class="export-button">
+              <mat-icon>description</mat-icon>
+              Exportar a Excel
+            </button>
+            <button mat-raised-button color="accent" (click)="exportarPDF('students')" class="export-button">
+              <mat-icon>picture_as_pdf</mat-icon>
+              Exportar a PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor para las tarjetas en horizontal con mejor distribucion de espacio -->
+        <div class="cards-container-horizontal">
+          <!-- Card del gráfico de estudiantes -->
+          <mat-card class="chart-card">
+            <mat-card-header>
+              <mat-card-title>Préstamos por Estudiante - Gráfico</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <!-- Gráfico de estudiantes -->
+              <div *ngIf="loadingStudents" class="spinner-container">
+                <mat-spinner diameter="40"></mat-spinner>
+              </div>
+              <div *ngIf="!loadingStudents && studentData.length > 0" class="chart-container">
+                <canvas #studentChart></canvas>
+              </div>
+              <div *ngIf="!loadingStudents && studentData.length === 0" class="no-data">
+                No hay datos disponibles para el período seleccionado
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <!-- Tabla de top estudiantes -->
+          <mat-card class="table-card">
+            <mat-card-header>
+              <mat-card-title>Top 10 Estudiantes con más préstamos</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div *ngIf="loadingStudents" class="spinner-container">
+                <mat-spinner diameter="40"></mat-spinner>
+              </div>
+              <table *ngIf="!loadingStudents && studentData.length > 0" mat-table [dataSource]="studentData" class="mat-elevation-z2">
+                <!-- Columna Nombre -->
+                <ng-container matColumnDef="nombre">
+                  <th mat-header-cell *matHeaderCellDef>Nombre</th>
+                  <td mat-cell *matCellDef="let item">{{item.nombre}}</td>
+                </ng-container>
+                
+                <!-- Columna RUT -->
+                <ng-container matColumnDef="rut">
+                  <th mat-header-cell *matHeaderCellDef>RUT</th>
+                  <td mat-cell *matCellDef="let item">{{item.rut}}</td>
+                </ng-container>
+                
+                <!-- Columna Préstamos -->
+                <ng-container matColumnDef="prestamos">
+                  <th mat-header-cell *matHeaderCellDef>Préstamos</th>
+                  <td mat-cell *matCellDef="let item">{{item.prestamos}}</td>
+                </ng-container>
+                
+                <!-- Columna Tiempo Promedio -->
+                <ng-container matColumnDef="tiempoPromedio">
+                  <th mat-header-cell *matHeaderCellDef>Tiempo Promedio (min)</th>
+                  <td mat-cell *matCellDef="let item">{{item.tiempoPromedio}}</td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="studentColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: studentColumns;"></tr>
+              </table>
+              <div *ngIf="!loadingStudents && studentData.length === 0" class="no-data">
+                No hay datos disponibles para el período seleccionado
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

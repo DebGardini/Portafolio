@@ -30,8 +30,15 @@
       </mat-card-content>
     </mat-card>
     
+    <!-- Mensaje de advertencia cuando el alumno está bloqueado -->
+    <mat-card *ngIf="alumnoEncontrado && prestamoBloqueado && alumno?.blocked" class="card resultado-card error-card">
+      <mat-card-content>
+        <p class="error-message">⚠️ Este alumno está bloqueado y no puede solicitar préstamos.</p>
+      </mat-card-content>
+    </mat-card>
+
     <!-- Mensaje de advertencia cuando el alumno tiene préstamo activo o pendiente -->
-    <mat-card *ngIf="alumnoEncontrado && prestamoBloqueado" class="card resultado-card error-card">
+    <mat-card *ngIf="alumnoEncontrado && prestamoBloqueado && !alumno?.blocked" class="card resultado-card error-card">
       <mat-card-content>
         <p class="error-message">⚠️ Este alumno tiene un préstamo activo o pendiente y no puede solicitar otro préstamo.</p>
       </mat-card-content>
@@ -44,8 +51,8 @@
     </mat-card>
   </div>
 
-  <!-- Mostrar si el alumno no está registrado -->
-  <mat-card *ngIf="busquedaRealizada && !alumnoExistente && !isLoading" class="card">
+  <!-- Mostrar si el alumno no está registrado y no tiene bloqueos ni préstamos activos -->
+  <mat-card *ngIf="busquedaRealizada && !alumnoExistente && !prestamoBloqueado && !isLoading" class="card">
     <mat-card-title>Enrolar Alumno</mat-card-title>
     <form [formGroup]="enrolForm" (ngSubmit)="enrolarAlumno()" class="form-grid">
       <!-- Campos del formulario para enrolar alumno -->

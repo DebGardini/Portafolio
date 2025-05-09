@@ -19,7 +19,6 @@ export class PrestamoService {
     const rutNumerico = rut.replace(/\D/g, '');
     console.log('Buscando alumno con RUT (limpio):', rutNumerico);
 
-    // Usar directamente la ruta correcta /api/students/rut/{rut}
     return this.http.get<any>(`${this.apiUrl}/students/rut/${rutNumerico}`).pipe(
       map(student => {
         console.log('Alumno encontrado:', student);
@@ -27,7 +26,7 @@ export class PrestamoService {
       }),
       catchError(error => {
         console.error('Error al buscar alumno por RUT:', error);
-        return of(null); // Devolver null en caso de error
+        return of(null);
       })
     );
   }
@@ -45,28 +44,24 @@ export class PrestamoService {
         map(response => {
           console.log('Original API response:', response);
 
-          // Handle the specific format where notebooks are in $values property
           if (response && response.$values && Array.isArray(response.$values)) {
             return response.$values;
           }
 
-          // Check if response is already an array
           if (Array.isArray(response)) {
             return response;
           }
 
-          // If the API returns an object with a data property containing the array
           if (response && response.data && Array.isArray(response.data)) {
             return response.data;
           }
 
-          // If we can't extract an array, return an empty array to prevent errors
           console.error('Unexpected response format from API:', response);
           return [];
         }),
         catchError(error => {
           console.error('Error fetching notebooks:', error);
-          return of([]);  // Return empty array on error
+          return of([]);  
         })
       );
   }
@@ -78,18 +73,13 @@ export class PrestamoService {
 
   // Actualizar la disponibilidad de un notebook (marcar como no disponible cuando se presta)
   actualizarDisponibilidadNotebook(notebookId: number, disponible: boolean): Observable<any> {
-    // Como no hay un endpoint específico para actualizar solo la disponibilidad,
-    // omitimos esta actualización ya que la API maneja automáticamente la disponibilidad 
-    // cuando se registra un préstamo o se finaliza
     console.log(`Notebook ${notebookId} - La disponibilidad se maneja automáticamente por la API al registrar el préstamo`);
     
-    // Devolvemos un observable exitoso sin hacer una llamada HTTP real
     return of({ success: true });
   }
 
   // Buscar información completa del alumno por RUT (incluye préstamos)
   getEstadoCompletoAlumno(rut: string): Observable<any> {
-    // Extraer solo la parte numérica del RUT (sin dígito verificador)
     const rutNumerico = rut.split('-')[0];
     
     // Primero, obtenemos todos los notebooks para tenerlos disponibles
@@ -172,7 +162,7 @@ export class PrestamoService {
                       
                       return {
                         ...alumno,
-                        estadoPrestamo: null, // No posee préstamos activos
+                        estadoPrestamo: null, 
                         bloqueos: tieneSanciones ? ['Bloqueo por sanción aplicada'] : (alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []),
                         sanciones: sancionesActivas
                       };
@@ -180,7 +170,7 @@ export class PrestamoService {
                     catchError(() => {
                       return of({
                         ...alumno,
-                        estadoPrestamo: null, // No posee préstamos activos
+                        estadoPrestamo: null, 
                         bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
                       });
                     })
@@ -188,10 +178,9 @@ export class PrestamoService {
                 }
               }),
               catchError(() => {
-                // Error al obtener préstamos activos
                 return of({
                   ...alumno,
-                  estadoPrestamo: null, // No posee préstamos activos
+                  estadoPrestamo: null, 
                   bloqueos: alumno.blocked ? ['Bloqueo por préstamos vencidos'] : []
                 });
               })
@@ -212,7 +201,6 @@ export class PrestamoService {
 
   // Verificar si un alumno tiene préstamos activos o pendientes
   verificarPrestamosActivos(rut: string): Observable<any> {
-    // Extraer solo la parte numérica del RUT
     const rutNumerico = rut.replace(/\D/g, '');
     
     console.log('Verificando préstamos activos para RUT:', rutNumerico);
@@ -222,13 +210,10 @@ export class PrestamoService {
         console.log('Respuesta de préstamos activos:', response);
         const prestamosActivos = response && response.$values ? response.$values : (Array.isArray(response) ? response : []);
         
-        // Buscar préstamos del estudiante con este RUT - Comparación mejorada
         const prestamosDelAlumno = prestamosActivos.filter((prestamo: any) => {
-          // Convertir a string y normalizar eliminando caracteres no numéricos
           const prestamoRut = prestamo.studentRut ? String(prestamo.studentRut).replace(/\D/g, '') : '';
           const prestamoStudentId = prestamo.studentId ? String(prestamo.studentId).replace(/\D/g, '') : '';
           
-          // Comparar como números y como strings
           return prestamoRut === rutNumerico || 
                  prestamoStudentId === rutNumerico ||
                  parseInt(prestamoRut) === parseInt(rutNumerico) ||
@@ -252,7 +237,7 @@ export class PrestamoService {
           };
         }
         
-        return null; // No tiene préstamos activos
+        return null;
       }),
       catchError(error => {
         console.error('Error al verificar préstamos activos:', error);

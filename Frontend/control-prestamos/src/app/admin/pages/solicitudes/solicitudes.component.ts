@@ -151,24 +151,19 @@ export class SolicitudesComponent implements OnInit {
           this.prestamoService.getEstadoCompletoAlumno(rut).subscribe(
             (estadoAlumno) => {
               if (estadoAlumno) {
-                // Verificar si tiene sanciones activas
-                if (estadoAlumno.sanciones && estadoAlumno.sanciones.length > 0) {
+                // Verificar directamente si el alumno está bloqueado, sin depender de las fechas de las sanciones
+                if (alumno.blocked === true) {
                   this.alumnoExistente = false;
                   this.prestamoBloqueado = true;
                   
-                  // Calcular la fecha de fin de la sanción más lejana
-                  const fechaFinSancion = estadoAlumno.sanciones.reduce((fechaMax: Date, sancion: any) => {
-                    const fechaSancion = new Date(sancion.finishDate);
-                    return fechaSancion > fechaMax ? fechaSancion : fechaMax;
-                  }, new Date(estadoAlumno.sanciones[0].finishDate));
-                  
-                  const fechaFormateada = this.formatearFecha(fechaFinSancion);
-                  
-                  const mensaje = `ADVERTENCIA: ${alumno.name} ${alumno.lastname} está bloqueado por una sanción hasta el ${fechaFormateada}. No puede solicitar préstamos.`;
+                  const mensaje = `ADVERTENCIA: ${alumno.name} ${alumno.lastname} está bloqueado. No puede solicitar préstamos.`;
                   this.snackBar.open(mensaje, 'Entendido', { duration: 8000 });
                   this.isLoading = false;
                   return;
                 }
+
+                // Si el alumno no está bloqueado, resetear la bandera
+                this.prestamoBloqueado = false;
                 
                 // Verificar si tiene préstamos activos (segunda verificación)
                 if (estadoAlumno.estadoPrestamo === 'Activo' || estadoAlumno.estadoPrestamo === 'Pendiente') {
@@ -204,7 +199,6 @@ export class SolicitudesComponent implements OnInit {
             },
             (error) => {
               console.error('Error al obtener estado completo del alumno:', error);
-              // Por seguridad, NO permitimos continuar en caso de error
               this.alumnoExistente = false;
               this.prestamoBloqueado = true;
               

@@ -63,6 +63,14 @@ export class StatusComponent implements OnInit, OnDestroy {
           this.studentData.fechaDevolucionFormateada = this.formatDate(this.studentData.fechaDevolucion);
         }
         
+        // Filtrar y mostrar solo la última sanción
+        if (this.studentData?.sanciones && this.studentData.sanciones.length > 0) {
+          const ultimaSancion = this.studentData.sanciones.reduce((prev: any, current: any) => {
+            return new Date(prev.finishDate) > new Date(current.finishDate) ? prev : current;
+          });
+          this.studentData.ultimaSancion = ultimaSancion;
+        }
+        
         // Si hay un préstamo activo o pendiente, iniciar el temporizador
         if (this.studentData?.fechaPrestamo && 
             (this.studentData?.estadoPrestamo === 'Activo' || this.studentData?.estadoPrestamo === 'Pendiente')) {

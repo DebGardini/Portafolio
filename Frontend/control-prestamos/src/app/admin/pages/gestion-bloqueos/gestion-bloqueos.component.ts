@@ -69,8 +69,18 @@ export class GestionBloqueosComponent implements OnInit {
     this.sanctionService.getBlockedStudents().subscribe({
       next: (data: BlockedStudent[]) => {
         console.log('Alumnos bloqueados con sus sanciones:', data);
-        this.rawData = data;
-        this.filteredData = [...data];
+        
+        // Filtrar para mostrar solo el último bloqueo por alumno
+        const uniqueBlockedStudents = data.reduce((acc, current) => {
+          const existing = acc.find(student => student.studentRut === current.studentRut);
+          if (!existing || new Date(existing.finishDate || 0) < new Date(current.finishDate || 0)) {
+            return acc.filter(student => student.studentRut !== current.studentRut).concat(current);
+          }
+          return acc;
+        }, [] as BlockedStudent[]);
+        
+        this.rawData = uniqueBlockedStudents;
+        this.filteredData = [...uniqueBlockedStudents];
         this.isLoading = false;
       },
       error: (error: any) => {

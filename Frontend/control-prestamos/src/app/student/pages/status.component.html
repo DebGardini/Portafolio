@@ -69,13 +69,10 @@
             Tu cuenta está actualmente bloqueada. Por favor comunícate con el administrador para más información.
           </p>
           
-          <!-- Detalles de sanciones si existen -->
-          <div *ngIf="studentData.sanciones?.length > 0">
-            <p><strong>Detalles de la sanción:</strong></p>
-            <div *ngFor="let sancion of studentData.sanciones" class="sancion-info">
-              <p><strong>Descripción:</strong> {{ sancion.description }}</p>
-              <p><strong>Vence el:</strong> {{ formatDate(sancion.finishDate) }}</p>
-            </div>
+          <!-- Mostrar solo la última sanción -->
+          <div *ngIf="studentData.ultimaSancion" class="sancion-info">
+            <p><strong>Descripción:</strong> {{ studentData.ultimaSancion.description }}</p>
+            <p><strong>Vence el:</strong> {{ formatDate(studentData.ultimaSancion.finishDate) }}</p>
           </div>
         </div>
         <p *ngIf="!studentData.blocked" class="sin-bloqueos">No posees bloqueos actualmente.</p>

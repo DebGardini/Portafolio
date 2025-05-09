@@ -1,10 +1,8 @@
-.header {
-    padding: 20px;
+.header { 
+    height: 60px;
     background-color: white;
     color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding-top: 0%;
-    padding-bottom: 0%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);    
   }
   
   .logo-container {
@@ -14,6 +12,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    height: 60px;
   }
   
   .logo {
