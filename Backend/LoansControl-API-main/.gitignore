@@ -1,0 +1,37 @@
+# Archivos de entorno
+.env
+
+# Archivos y directorios de compilación
+bin/
+obj/
+
+# Archivos de usuario y configuración
+*.user
+*.suo
+*.vspx
+*.vsp
+*.vs
+
+# Dependencias
+packages/
+
+# Archivos generados por el sistema
+Thumbs.db
+Desktop.ini
+
+# Archivos de logs y depuración
+*.log
+
+# Archivos de publicación
+dist/
+publish/
+
+# Archivos de caché de Visual Studio
+.vs/
+
+# Archivos específicos de Rider y Resharper
+.idea/
+*.sln.iml
+*.DotSettings.user
+
+Migrations/
