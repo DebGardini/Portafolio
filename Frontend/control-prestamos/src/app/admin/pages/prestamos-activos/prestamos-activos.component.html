@@ -46,13 +46,9 @@
                 {{ prestamo.isExpired ? 'Pendiente' : 'Activo' }}
               </span>
             </td>
-            <td>
-              <div class="action-buttons">
+            <td>              <div class="action-buttons">
                 <button mat-icon-button color="primary" (click)="finalizarPrestamo(prestamo)" title="Finalizar préstamo">
                   <mat-icon>check_circle</mat-icon>
-                </button>
-                <button mat-icon-button color="accent" (click)="(prestamo)" title="Eliminar préstamo">
-                  <mat-icon>delete</mat-icon>
                 </button>
                 <button mat-icon-button color="warn" (click)="bloquearAlumno(prestamo)" title="Bloquear alumno">
                   <mat-icon>block</mat-icon>
